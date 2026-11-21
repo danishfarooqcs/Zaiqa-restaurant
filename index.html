@@ -18,22 +18,24 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   </head>
   <body
-    class="bg-[#0F0E0D] text-stone-100 min-h-screen flex flex-col selection:bg-amber-500/30 selection:text-amber-200"
+    id="pageBody"
+    class="bg-[#0F0E0D] text-stone-100 min-h-screen flex flex-col transition-colors duration-300 selection:bg-amber-500/30 selection:text-amber-200"
   >
-    <!-- Luxury Sticky Navigation -->
+    <!-- Sticky Navigation with Real Dark / Light Switch -->
     <header
-      class="sticky top-0 z-30 bg-[#0F0E0D]/90 backdrop-blur-md border-b border-amber-500/15"
+      id="mainHeader"
+      class="sticky top-0 z-30 bg-[#0F0E0D]/92 backdrop-blur-md border-b border-amber-500/15 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4"
+        class="max-w-7xl mx-auto px-3 sm:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4"
       >
-        <!-- LEFT: User Profile Button + Brand Signature -->
-        <div class="flex items-center gap-3.5 min-w-0">
+        <!-- LEFT: User Profile Icon + Brand Signature -->
+        <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
           <button
             id="userProfileBtn"
             type="button"
             title="My Profile & Orders"
-            class="hidden items-center gap-2.5 px-3 py-1.5 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs font-semibold text-amber-300 transition cursor-pointer shrink-0"
+            class="hidden items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-stone-900 border border-amber-500/30 text-xs font-semibold text-amber-300 transition cursor-pointer shrink-0"
           >
             <span
               class="w-6 h-6 rounded-full bg-amber-600 text-stone-950 flex items-center justify-center font-bold text-xs"
@@ -42,7 +44,7 @@
             >
             <span
               id="userProfileName"
-              class="hidden sm:inline max-w-24 truncate"
+              class="hidden md:inline max-w-24 truncate"
               >Account</span
             >
           </button>
@@ -50,36 +52,38 @@
           <a href="./index.html" class="flex flex-col min-w-0 group">
             <span
               id="navBrandName"
-              class="font-serif text-xl sm:text-2xl font-bold text-amber-400 tracking-wider uppercase truncate group-hover:text-amber-300 transition"
+              class="font-serif text-base sm:text-2xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition"
             >
               Zaiqa Royal Kitchen
             </span>
             <span
-              class="text-[10px] uppercase tracking-[0.28em] text-stone-400 hidden sm:block"
+              id="navSubtitle"
+              class="text-[10px] uppercase tracking-[0.26em] text-stone-400 hidden sm:block"
             >
-              Est. Multan • Fine Dining
+              Gulgasht Colony • Multan
             </span>
           </a>
         </div>
 
-        <!-- CENTER-RIGHT LINKS -->
+        <!-- DESKTOP NAV LINKS -->
         <nav
-          class="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em] font-medium text-stone-300"
+          id="desktopNav"
+          class="hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-medium text-stone-300"
         >
           <a href="#story-section" class="hover:text-amber-400 transition"
-            >Our Story</a
+            >Story</a
           >
           <a href="#menu-section" class="hover:text-amber-400 transition"
-            >The Menu</a
+            >Menu</a
           >
           <a href="#location-section" class="hover:text-amber-400 transition"
             >Location</a
           >
           <a
             href="./track-order.html"
-            class="flex items-center gap-2 hover:text-amber-400 transition"
+            class="flex items-center gap-1.5 hover:text-amber-400 transition"
           >
-            <span>Track Order</span>
+            <span>Track</span>
             <span
               id="activeOrderDot"
               class="w-2 h-2 rounded-full bg-emerald-400 hidden"
@@ -87,18 +91,37 @@
           </a>
         </nav>
 
-        <!-- RIGHT CONTROLS: Separated Login/Signup + Cart -->
-        <div class="flex items-center gap-2.5 sm:gap-3">
-          <div id="guestAuthButtons" class="flex items-center gap-2">
+        <!-- RIGHT CONTROLS: Theme Switch + Separated Login/Sign Up + Cart -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <!-- Working Dark / Light Theme Switch -->
+          <button
+            id="themeToggleBtn"
+            type="button"
+            aria-label="Switch Dark or Light Theme"
+            title="Switch Dark / Light Theme"
+            class="px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <span id="themeIcon">☀️</span>
+            <span
+              id="themeLabel"
+              class="hidden sm:inline text-[11px] uppercase tracking-wider"
+              >Light</span
+            >
+          </button>
+
+          <!-- Separated Login & Sign Up Buttons (shown when logged out) -->
+          <div id="guestAuthButtons" class="flex items-center gap-1.5 sm:gap-2">
             <a
               href="./auth.html?mode=login"
-              class="px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-xs uppercase tracking-wider font-semibold text-stone-200 transition"
+              id="navLoginBtn"
+              class="px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 transition"
             >
               Login
             </a>
             <a
               href="./auth.html?mode=signup"
-              class="px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 transition"
+              id="navSignupBtn"
+              class="hidden xs:inline-block sm:inline-block px-2.5 sm:px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-amber-400 transition"
             >
               Sign Up
             </a>
@@ -106,6 +129,7 @@
 
           <a
             href="./admin/login.html"
+            id="navAdminLink"
             class="hidden xl:inline text-[11px] uppercase tracking-widest text-stone-500 hover:text-stone-300 transition"
           >
             Staff
@@ -114,41 +138,80 @@
           <button
             id="openCartBtn"
             type="button"
-            class="px-4 py-2.5 rounded-full bg-amber-600 hover:bg-amber-500 text-stone-950 text-xs uppercase tracking-wider font-bold flex items-center gap-2 shadow-lg shadow-amber-900/30 transition cursor-pointer"
+            class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs uppercase tracking-wider font-bold flex items-center gap-1.5 sm:gap-2 shadow-lg transition cursor-pointer"
           >
             <span>Order</span>
             <span
               id="cartCountBadge"
-              class="px-2 py-0.5 text-[11px] rounded-full bg-stone-950 text-amber-300 font-bold"
+              class="px-1.5 sm:px-2 py-0.5 text-[11px] rounded-full bg-stone-950 text-amber-300 font-bold"
               >0</span
             >
           </button>
         </div>
       </div>
+
+      <!-- Mobile Quick Sub-Bar (Track Order + Sign Up when needed) -->
+      <div
+        id="mobileSubBar"
+        class="sm:hidden border-t border-stone-800/70 px-3 py-2 flex items-center justify-between text-[11px] text-stone-300"
+      >
+        <div class="flex items-center gap-4">
+          <a href="#menu-section" class="hover:text-amber-400 font-medium"
+            >Menu</a
+          >
+          <a
+            href="./track-order.html"
+            class="flex items-center gap-1 hover:text-amber-400 font-medium"
+          >
+            <span>Track Order</span>
+            <span
+              id="mobileOrderDot"
+              class="w-1.5 h-1.5 rounded-full bg-emerald-400 hidden"
+            ></span>
+          </a>
+          <a
+            href="./admin/login.html"
+            class="text-stone-400 hover:text-amber-400"
+            >Admin</a
+          >
+        </div>
+        <a
+          href="./auth.html?mode=signup"
+          id="mobileSignupLink"
+          class="text-amber-400 font-semibold"
+        >
+          Create Account →
+        </a>
+      </div>
     </header>
 
     <!-- Editorial Fine-Dining Hero -->
     <section
-      class="relative min-h-[82vh] flex items-center overflow-hidden border-b border-amber-500/15"
+      id="heroSection"
+      class="relative min-h-[72vh] sm:min-h-[82vh] flex items-center overflow-hidden border-b border-amber-500/15"
     >
       <img
         src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1800&q=85"
         alt="Fine dining table setting and signature culinary craft"
-        class="absolute inset-0 w-full h-full object-cover scale-105 opacity-45"
+        class="absolute inset-0 w-full h-full object-cover scale-105 opacity-40"
       />
       <div
-        class="absolute inset-0 bg-gradient-to-r from-[#0F0E0D] via-[#0F0E0D]/80 to-[#0F0E0D]/30"
+        id="heroOverlay"
+        class="absolute inset-0 bg-gradient-to-r from-[#0F0E0D] via-[#0F0E0D]/80 to-[#0F0E0D]/35"
       ></div>
       <div
+        id="heroBottomFade"
         class="absolute inset-0 bg-gradient-to-t from-[#0F0E0D] via-transparent to-[#0F0E0D]/50"
       ></div>
 
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-8 py-24 w-full">
-        <div class="max-w-2xl space-y-6">
-          <div class="inline-flex items-center gap-3">
-            <span class="h-px w-10 bg-amber-400"></span>
+      <div
+        class="relative max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 w-full"
+      >
+        <div class="max-w-2xl space-y-5 sm:space-y-6">
+          <div class="inline-flex items-center gap-2.5">
+            <span class="h-px w-8 sm:w-10 bg-amber-400"></span>
             <span
-              class="text-xs font-semibold uppercase tracking-[0.3em] text-amber-400"
+              class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] sm:tracking-[0.3em] text-amber-400"
             >
               Gulgasht Colony • Multan
             </span>
@@ -156,48 +219,61 @@
 
           <h1
             id="heroTitle"
-            class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.08] tracking-tight"
+            class="font-serif text-3xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight"
           >
             An Elevated Taste of Royal Hospitality
           </h1>
 
           <p
-            class="text-stone-300 text-base sm:text-lg leading-relaxed max-w-xl font-normal"
+            id="heroDesc"
+            class="text-stone-300 text-sm sm:text-lg leading-relaxed max-w-xl"
           >
-            Slow-simmered heirloom recipes, live charcoal grills, and artisan
+            Slow-simmered heirloom recipes, live charcoal grills, and warm
             hospitality—delivered straight to your doorstep anywhere in Multan
             with a flat 5% delivery charge.
           </p>
 
-          <div class="flex flex-wrap items-center gap-4 pt-3">
+          <div
+            class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 pt-2"
+          >
             <a
               href="#menu-section"
-              class="px-7 py-4 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-[0.2em] transition shadow-xl shadow-amber-950/50"
+              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-[0.2em] transition shadow-xl"
             >
               Explore The Menu
             </a>
             <a
               href="./track-order.html"
-              class="px-7 py-4 rounded-full bg-stone-900/80 hover:bg-stone-800 text-stone-100 border border-amber-500/30 font-semibold text-xs uppercase tracking-[0.2em] transition"
+              id="heroTrackBtn"
+              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-stone-900/85 hover:bg-stone-800 text-stone-100 border border-amber-500/30 font-semibold text-xs uppercase tracking-[0.2em] transition"
             >
               Live Order Tracker
             </a>
           </div>
 
-          <!-- Subtle Luxury Highlights Strip -->
+          <!-- Highlights Strip -->
           <div
-            class="pt-8 grid grid-cols-3 gap-6 max-w-lg border-t border-stone-800/90 text-xs"
+            id="heroStats"
+            class="pt-6 sm:pt-8 grid grid-cols-3 gap-3 sm:gap-6 max-w-lg border-t border-stone-800/80 text-xs"
           >
             <div>
-              <p class="font-serif text-lg font-bold text-amber-400">Live</p>
+              <p
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                Live Flame
+              </p>
               <p
                 class="text-stone-400 uppercase tracking-wider text-[10px] mt-0.5"
               >
-                Charcoal & Handi
+                Charcoal & Karahi
               </p>
             </div>
             <div>
-              <p class="font-serif text-lg font-bold text-amber-400">5% Flat</p>
+              <p
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                5% Flat
+              </p>
               <p
                 class="text-stone-400 uppercase tracking-wider text-[10px] mt-0.5"
               >
@@ -205,7 +281,9 @@
               </p>
             </div>
             <div>
-              <p class="font-serif text-lg font-bold text-amber-400">
+              <p
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
                 12 PM – 1 AM
               </p>
               <p
@@ -219,17 +297,17 @@
       </div>
     </section>
 
-    <!-- Editorial Story / Culinary Philosophy Section -->
+    <!-- Story / Culinary Philosophy Section -->
     <section
       id="story-section"
-      class="py-20 bg-[#141210] border-b border-amber-500/10"
+      class="py-16 sm:py-20 bg-[#141210] border-b border-amber-500/10 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center"
+        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center"
       >
         <div class="lg:col-span-5 relative">
           <div
-            class="aspect-[4/5] rounded-2xl overflow-hidden border border-amber-500/20 shadow-2xl"
+            class="aspect-[4/3] sm:aspect-[4/5] rounded-2xl overflow-hidden border border-amber-500/20 shadow-2xl"
           >
             <img
               src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80"
@@ -238,6 +316,7 @@
             />
           </div>
           <div
+            id="storyBadgeCard"
             class="hidden sm:block absolute -bottom-6 -right-6 bg-[#1B1815] border border-amber-500/30 rounded-2xl p-5 shadow-xl max-w-[220px]"
           >
             <p class="font-serif text-amber-400 text-lg font-bold">
@@ -249,7 +328,7 @@
           </div>
         </div>
 
-        <div class="lg:col-span-7 space-y-6">
+        <div class="lg:col-span-7 space-y-5 sm:space-y-6">
           <div class="inline-flex items-center gap-3">
             <span class="h-px w-8 bg-amber-400"></span>
             <span
@@ -258,37 +337,46 @@
             >
           </div>
           <h2
-            class="font-serif text-3xl sm:text-5xl font-bold text-white leading-tight"
+            id="storyHeading"
+            class="font-serif text-2xl sm:text-5xl font-bold leading-tight"
           >
             Where Traditional Spice Meets Modern Fine Dining
           </h2>
-          <p class="text-stone-300 text-sm sm:text-base leading-relaxed">
-            Inspired by classic supper-club warmth and Multan's rich culinary
-            heritage, our chefs roast whole spices daily, marinate prime cuts
-            overnight, and finish every karahi and biryani with signature
-            aromatics.
+          <p
+            id="storyBody"
+            class="text-stone-300 text-sm sm:text-base leading-relaxed"
+          >
+            Inspired by classic dining warmth and Multan's rich culinary
+            heritage, our kitchen roasts whole spices daily, prepares fresh cuts
+            to order, and finishes every dish with signature aromatics.
           </p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div
-              class="p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90"
+              id="featureCard1"
+              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90"
             >
-              <h3 class="font-serif text-lg font-bold text-amber-300">
+              <h3
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
                 Pin-Drop Multan Delivery
               </h3>
               <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">
                 Drop your exact pin on our interactive Multan map during
-                checkout for precision doorstep delivery.
+                checkout for accurate doorstep delivery.
               </p>
             </div>
             <div
-              class="p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90"
+              id="featureCard2"
+              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90"
             >
-              <h3 class="font-serif text-lg font-bold text-amber-300">
+              <h3
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
                 Real-Time Kitchen Sync
               </h3>
               <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">
-                Watch your order move live from kitchen prep to rider dispatch
-                straight from your profile.
+                Track your order live from kitchen preparation to dispatch right
+                inside your profile.
               </p>
             </div>
           </div>
@@ -299,36 +387,37 @@
     <!-- Live Menu Section -->
     <main
       id="menu-section"
-      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-20 space-y-10"
+      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-16 sm:py-20 space-y-8 sm:space-y-10"
     >
-      <div class="text-center max-w-2xl mx-auto space-y-3">
+      <div class="text-center max-w-2xl mx-auto space-y-2.5">
         <p
-          class="text-xs font-semibold uppercase tracking-[0.32em] text-amber-400"
+          class="text-xs font-semibold uppercase tracking-[0.3em] text-amber-400"
         >
           Seasonal & Signature
         </p>
-        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-white">
+        <h2 id="menuHeading" class="font-serif text-3xl sm:text-5xl font-bold">
           The Tasting & Dining Menu
         </h2>
-        <p class="text-sm text-stone-400">
-          Select a category or search below. Seasonal discounts apply
-          automatically at checkout.
+        <p id="menuSubheading" class="text-xs sm:text-sm text-stone-400">
+          Tap a category or search below. Active discounts apply automatically
+          at checkout.
         </p>
       </div>
 
       <div
-        class="flex flex-col md:flex-row items-center justify-between gap-4 pb-2 border-b border-stone-800/80"
+        class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pb-3 border-b border-stone-800/80"
       >
+        <!-- Horizontal scroll on mobile for effortless thumb browsing -->
         <div
           id="categoryFilters"
-          class="flex flex-wrap justify-center md:justify-start gap-2"
+          class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 md:flex-wrap no-scrollbar"
         ></div>
 
-        <div class="w-full md:w-72">
+        <div class="w-full md:w-72 shrink-0">
           <input
             id="menuSearchInput"
             type="search"
-            placeholder="Search signature dishes..."
+            placeholder="Search dishes..."
             class="w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400"
           />
         </div>
@@ -336,17 +425,17 @@
 
       <div
         id="menuGrid"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7"
       ></div>
     </main>
 
     <!-- Bottom Store Location Map (Gulgasht Colony, Multan, Punjab, Pakistan) -->
     <section
       id="location-section"
-      class="bg-[#141210] border-t border-amber-500/15 py-20"
+      class="bg-[#141210] border-t border-amber-500/15 py-16 sm:py-20 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center"
+        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center"
       >
         <div class="lg:col-span-5 space-y-4">
           <div class="inline-flex items-center gap-3">
@@ -356,16 +445,23 @@
               >Find Us</span
             >
           </div>
-          <h2 class="font-serif text-3xl sm:text-4xl font-bold text-white">
+          <h2
+            id="locationHeading"
+            class="font-serif text-2xl sm:text-4xl font-bold"
+          >
             Gulgasht Colony, Multan
           </h2>
-          <p class="text-sm text-stone-300 leading-relaxed">
+          <p
+            id="locationBody"
+            class="text-stone-300 text-xs sm:text-sm leading-relaxed"
+          >
             Situated in the heart of
             <strong>Gulgasht Colony, Multan, Punjab, Pakistan</strong>. Online
-            delivery serves all Multan neighborhoods exclusively at a
+            delivery serves Multan city exclusively at a
             <strong>5% delivery charge</strong>.
           </p>
           <div
+            id="locationMeta"
             class="pt-2 space-y-1.5 text-xs text-stone-400 border-t border-stone-800"
           >
             <p>
@@ -381,18 +477,21 @@
         <div class="lg:col-span-7">
           <div
             id="storeLocationMap"
-            class="w-full h-80 rounded-2xl border border-amber-500/25 shadow-2xl z-10"
+            class="w-full h-64 sm:h-80 rounded-2xl border border-amber-500/25 shadow-2xl z-10"
           ></div>
         </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-[#0A0908] text-stone-400 border-t border-stone-900">
+    <footer
+      id="mainFooter"
+      class="bg-[#0A0908] text-stone-400 border-t border-stone-900 pb-20 sm:pb-10 transition-colors duration-300"
+    >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs"
+        class="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs"
       >
-        <p id="footerBrandText" class="tracking-wide">
+        <p id="footerBrandText" class="tracking-wide text-center sm:text-left">
           Zaiqa Royal Kitchen • Gulgasht Colony, Multan, Punjab, Pakistan
         </p>
         <div
@@ -407,6 +506,21 @@
         </div>
       </div>
     </footer>
+
+    <!-- Mobile Floating Order Bar (appears when cart has items) -->
+    <div
+      id="mobileOrderBar"
+      class="sm:hidden fixed bottom-3 inset-x-3 z-30 hidden"
+    >
+      <button
+        id="mobileOpenCartBtn"
+        type="button"
+        class="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-2xl flex items-center justify-between cursor-pointer"
+      >
+        <span>View Order (<span id="mobileCartCount">0</span> items)</span>
+        <span id="mobileCartTotal" class="font-extrabold">Rs. 0</span>
+      </button>
+    </div>
 
     <!-- LEFT SLIDE-OVER: USER PROFILE & MY ORDERS DRAWER -->
     <div

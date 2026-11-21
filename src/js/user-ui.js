@@ -11,12 +11,15 @@ const CATEGORIES = [
   "Desserts",
   "Beverages",
 ];
+const THEME_KEY = "restro_theme_v1";
+
 let selectedCategory = "All";
 let searchQuery = "";
+let currentTheme =
+  localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
 
 // Gulgasht Colony, Multan, Punjab, Pakistan
 const GULGASHT_MULTAN = { lat: 30.2225, lng: 71.4718 };
-// Multan city delivery bounding box
 const MULTAN_BOUNDS = {
   minLat: 30.08,
   maxLat: 30.33,
@@ -30,9 +33,46 @@ let checkoutMap = null;
 let checkoutMarker = null;
 
 const els = {
+  pageBody: document.getElementById("pageBody"),
+  mainHeader: document.getElementById("mainHeader"),
+  mobileSubBar: document.getElementById("mobileSubBar"),
+  mobileSignupLink: document.getElementById("mobileSignupLink"),
   navBrandName: document.getElementById("navBrandName"),
+  navSubtitle: document.getElementById("navSubtitle"),
+  desktopNav: document.getElementById("desktopNav"),
+  navLoginBtn: document.getElementById("navLoginBtn"),
+  navSignupBtn: document.getElementById("navSignupBtn"),
+  navAdminLink: document.getElementById("navAdminLink"),
+  themeToggleBtn: document.getElementById("themeToggleBtn"),
+  themeIcon: document.getElementById("themeIcon"),
+  themeLabel: document.getElementById("themeLabel"),
+  heroSection: document.getElementById("heroSection"),
+  heroOverlay: document.getElementById("heroOverlay"),
+  heroBottomFade: document.getElementById("heroBottomFade"),
+  heroTitle: document.getElementById("heroTitle"),
+  heroDesc: document.getElementById("heroDesc"),
+  heroTrackBtn: document.getElementById("heroTrackBtn"),
+  heroStats: document.getElementById("heroStats"),
+  storySection: document.getElementById("story-section"),
+  storyBadgeCard: document.getElementById("storyBadgeCard"),
+  storyHeading: document.getElementById("storyHeading"),
+  storyBody: document.getElementById("storyBody"),
+  featureCard1: document.getElementById("featureCard1"),
+  featureCard2: document.getElementById("featureCard2"),
+  menuHeading: document.getElementById("menuHeading"),
+  menuSubheading: document.getElementById("menuSubheading"),
+  locationSection: document.getElementById("location-section"),
+  locationHeading: document.getElementById("locationHeading"),
+  locationBody: document.getElementById("locationBody"),
+  locationMeta: document.getElementById("locationMeta"),
+  mainFooter: document.getElementById("mainFooter"),
   footerBrandText: document.getElementById("footerBrandText"),
   activeOrderDot: document.getElementById("activeOrderDot"),
+  mobileOrderDot: document.getElementById("mobileOrderDot"),
+  mobileOrderBar: document.getElementById("mobileOrderBar"),
+  mobileOpenCartBtn: document.getElementById("mobileOpenCartBtn"),
+  mobileCartCount: document.getElementById("mobileCartCount"),
+  mobileCartTotal: document.getElementById("mobileCartTotal"),
   userProfileBtn: document.getElementById("userProfileBtn"),
   userAvatarInitial: document.getElementById("userAvatarInitial"),
   userProfileName: document.getElementById("userProfileName"),
@@ -65,6 +105,115 @@ const els = {
   menuGrid: document.getElementById("menuGrid"),
   menuSearchInput: document.getElementById("menuSearchInput"),
 };
+
+function isLight() {
+  return currentTheme === "light";
+}
+
+function applyTheme() {
+  const light = isLight();
+
+  els.themeIcon.textContent = light ? "🌙" : "☀️";
+  els.themeLabel.textContent = light ? "Dark" : "Light";
+
+  els.pageBody.className = light
+    ? "bg-[#FAF7F2] text-stone-900 min-h-screen flex flex-col transition-colors duration-300 selection:bg-amber-200"
+    : "bg-[#0F0E0D] text-stone-100 min-h-screen flex flex-col transition-colors duration-300 selection:bg-amber-500/30 selection:text-amber-200";
+
+  els.mainHeader.className = light
+    ? "sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-stone-200 transition-colors duration-300"
+    : "sticky top-0 z-30 bg-[#0F0E0D]/92 backdrop-blur-md border-b border-amber-500/15 transition-colors duration-300";
+
+  els.navBrandName.className = light
+    ? "font-serif text-base sm:text-2xl font-bold text-amber-800 tracking-wide sm:tracking-wider uppercase truncate transition"
+    : "font-serif text-base sm:text-2xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition";
+
+  els.navSubtitle.className = light
+    ? "text-[10px] uppercase tracking-[0.26em] text-stone-500 hidden sm:block"
+    : "text-[10px] uppercase tracking-[0.26em] text-stone-400 hidden sm:block";
+
+  els.desktopNav.className = light
+    ? "hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-semibold text-stone-700"
+    : "hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-medium text-stone-300";
+
+  els.themeToggleBtn.className = light
+    ? "px-2.5 sm:px-3 py-2 rounded-full border border-stone-300 bg-white hover:bg-stone-100 text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+    : "px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 hover:bg-stone-800 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer";
+
+  els.navLoginBtn.className = light
+    ? "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-300 hover:border-amber-700 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-800 bg-white transition"
+    : "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 transition";
+
+  els.navSignupBtn.className = light
+    ? "hidden xs:inline-block sm:inline-block px-2.5 sm:px-3.5 py-2 rounded-full bg-amber-700 hover:bg-amber-600 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-white transition"
+    : "hidden xs:inline-block sm:inline-block px-2.5 sm:px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-amber-400 transition";
+
+  els.mobileSubBar.className = light
+    ? "sm:hidden border-t border-stone-200 bg-[#F4EFE6] px-3 py-2 flex items-center justify-between text-[11px] text-stone-700"
+    : "sm:hidden border-t border-stone-800/70 px-3 py-2 flex items-center justify-between text-[11px] text-stone-300";
+
+  els.mobileSignupLink.className = light
+    ? "text-amber-800 font-bold"
+    : "text-amber-400 font-semibold";
+
+  els.heroSection.className = light
+    ? "relative min-h-[70vh] sm:min-h-[80vh] flex items-center overflow-hidden border-b border-stone-200 bg-stone-900 text-white"
+    : "relative min-h-[72vh] sm:min-h-[82vh] flex items-center overflow-hidden border-b border-amber-500/15 bg-[#0F0E0D] text-white";
+
+  els.storySection.className = light
+    ? "py-16 sm:py-20 bg-white border-b border-stone-200 transition-colors duration-300"
+    : "py-16 sm:py-20 bg-[#141210] border-b border-amber-500/10 transition-colors duration-300";
+
+  els.storyBadgeCard.className = light
+    ? "hidden sm:block absolute -bottom-6 -right-6 bg-[#FAF7F2] border border-stone-200 rounded-2xl p-5 shadow-xl max-w-[220px]"
+    : "hidden sm:block absolute -bottom-6 -right-6 bg-[#1B1815] border border-amber-500/30 rounded-2xl p-5 shadow-xl max-w-[220px]";
+
+  els.storyHeading.className = light
+    ? "font-serif text-2xl sm:text-5xl font-bold text-stone-900 leading-tight"
+    : "font-serif text-2xl sm:text-5xl font-bold text-white leading-tight";
+
+  els.storyBody.className = light
+    ? "text-stone-600 text-sm sm:text-base leading-relaxed"
+    : "text-stone-300 text-sm sm:text-base leading-relaxed";
+
+  const cardSurface = light
+    ? "p-4 sm:p-5 rounded-2xl bg-[#FAF7F2] border border-stone-200"
+    : "p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90";
+  els.featureCard1.className = cardSurface;
+  els.featureCard2.className = cardSurface;
+
+  els.menuHeading.className = light
+    ? "font-serif text-3xl sm:text-5xl font-bold text-stone-900"
+    : "font-serif text-3xl sm:text-5xl font-bold text-white";
+
+  els.menuSubheading.className = light
+    ? "text-xs sm:text-sm text-stone-600"
+    : "text-xs sm:text-sm text-stone-400";
+
+  els.menuSearchInput.className = light
+    ? "w-full px-4 py-2.5 rounded-full bg-white border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700"
+    : "w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400";
+
+  els.locationSection.className = light
+    ? "bg-white border-t border-stone-200 py-16 sm:py-20 transition-colors duration-300"
+    : "bg-[#141210] border-t border-amber-500/15 py-16 sm:py-20 transition-colors duration-300";
+
+  els.locationHeading.className = light
+    ? "font-serif text-2xl sm:text-4xl font-bold text-stone-900"
+    : "font-serif text-2xl sm:text-4xl font-bold text-white";
+
+  els.locationBody.className = light
+    ? "text-stone-600 text-xs sm:text-sm leading-relaxed"
+    : "text-stone-300 text-xs sm:text-sm leading-relaxed";
+
+  els.locationMeta.className = light
+    ? "pt-2 space-y-1.5 text-xs text-stone-500 border-t border-stone-200"
+    : "pt-2 space-y-1.5 text-xs text-stone-400 border-t border-stone-800";
+
+  els.mainFooter.className = light
+    ? "bg-[#EFEAE0] text-stone-600 border-t border-stone-200 pb-20 sm:pb-10 transition-colors duration-300"
+    : "bg-[#0A0908] text-stone-400 border-t border-stone-900 pb-20 sm:pb-10 transition-colors duration-300";
+}
 
 function formatPrice(amount) {
   return `Rs. ${Number(amount || 0).toLocaleString()}`;
@@ -133,7 +282,6 @@ async function detectAddressFromPin(lat, lng) {
 function initMaps() {
   if (typeof window.L === "undefined") return;
 
-  // 1. Bottom Store Map (Gulgasht Colony, Multan, Punjab, Pakistan)
   const storeMapEl = document.getElementById("storeLocationMap");
   if (storeMapEl && !storeMapEl.dataset.ready) {
     storeMapEl.dataset.ready = "true";
@@ -153,7 +301,6 @@ function initMaps() {
       .openPopup();
   }
 
-  // 2. Checkout Draggable Pin Map
   const pinMapEl = document.getElementById("checkoutPinMap");
   if (pinMapEl && !checkoutMap) {
     checkoutMap = window.L.map("checkoutPinMap").setView(
@@ -231,12 +378,15 @@ function renderBrand() {
   const hasActive =
     lastOrder && !["Delivered", "Cancelled"].includes(lastOrder.status);
   els.activeOrderDot.classList.toggle("hidden", !hasActive);
+  els.mobileOrderDot.classList.toggle("hidden", !hasActive);
 
   const currentUser = Auth.getCurrentUser();
   if (currentUser) {
     els.userProfileBtn.classList.remove("hidden");
     els.userProfileBtn.classList.add("flex");
     els.guestAuthButtons.classList.add("hidden");
+    els.mobileSignupLink.textContent = `My Orders (${currentUser.name.split(" ")[0]})`;
+    els.mobileSignupLink.href = "#profile";
     els.userAvatarInitial.textContent = currentUser.name
       .charAt(0)
       .toUpperCase();
@@ -254,18 +404,22 @@ function renderBrand() {
     els.userProfileBtn.classList.add("hidden");
     els.userProfileBtn.classList.remove("flex");
     els.guestAuthButtons.classList.remove("hidden");
+    els.mobileSignupLink.textContent = "Create Account →";
+    els.mobileSignupLink.href = "./auth.html?mode=signup";
   }
 }
 
 function renderCategories() {
+  const light = isLight();
   els.categoryFilters.innerHTML = CATEGORIES.map((cat) => {
     const active = selectedCategory === cat;
+    const inactiveClass = light
+      ? "bg-white text-stone-700 border border-stone-300 hover:border-amber-700 hover:text-amber-800"
+      : "bg-[#181614] text-stone-300 border border-stone-800 hover:border-amber-500/50 hover:text-amber-300";
     return `
       <button type="button" data-category="${cat}"
-        class="px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition cursor-pointer ${
-          active
-            ? "bg-amber-500 text-stone-950 shadow-md shadow-amber-950/40"
-            : "bg-[#181614] text-stone-300 border border-stone-800 hover:border-amber-500/50 hover:text-amber-300"
+        class="px-4 sm:px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
+          active ? "bg-amber-500 text-stone-950 shadow-md" : inactiveClass
         }">
         ${cat}
       </button>
@@ -274,6 +428,7 @@ function renderCategories() {
 }
 
 function renderMenu() {
+  const light = isLight();
   const allItems = Store.getMenu();
   const filtered = allItems.filter((item) => {
     const matchesCat =
@@ -289,7 +444,7 @@ function renderMenu() {
 
   if (filtered.length === 0) {
     els.menuGrid.innerHTML = `
-      <div class="col-span-full bg-[#181614] border border-stone-800 rounded-2xl p-12 text-center text-stone-400">
+      <div class="col-span-full ${light ? "bg-white border-stone-200 text-stone-500" : "bg-[#181614] border-stone-800 text-stone-400"} border rounded-2xl p-12 text-center">
         No dishes found matching your selection.
       </div>
     `;
@@ -302,49 +457,67 @@ function renderMenu() {
       const off = Number(item.offPercent || 0);
       const finalPrice = getEffectivePrice(item);
 
+      const cardClasses = light
+        ? "group bg-white border border-stone-200 hover:border-amber-600/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 flex flex-col"
+        : "group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl transition duration-300 flex flex-col";
+
+      const titleClasses = light
+        ? "font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug group-hover:text-amber-800 transition"
+        : "font-serif text-lg sm:text-xl font-bold text-white leading-snug group-hover:text-amber-300 transition";
+
+      const priceClasses = light
+        ? "text-base font-bold text-amber-800"
+        : "text-base font-bold text-amber-400";
+
+      const descClasses = light
+        ? "text-xs sm:text-sm text-stone-600 mt-1.5 line-clamp-2 leading-relaxed"
+        : "text-xs sm:text-sm text-stone-400 mt-1.5 line-clamp-2 leading-relaxed";
+
+      const btnClasses = available
+        ? light
+          ? "bg-stone-900 hover:bg-amber-700 text-white cursor-pointer"
+          : "bg-stone-900 hover:bg-amber-500 text-amber-300 hover:text-stone-950 border border-amber-500/30 cursor-pointer"
+        : "bg-stone-200 text-stone-400 cursor-not-allowed";
+
       return `
-        <article class="group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl transition duration-300 flex flex-col">
-          <div class="relative h-56 bg-stone-900 overflow-hidden">
+        <article class="${cardClasses}">
+          <div class="relative h-48 sm:h-56 bg-stone-900 overflow-hidden">
             <img src="${item.image}" alt="${item.name}" loading="lazy"
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 ${available ? "" : "grayscale opacity-50"}" />
-            <div class="absolute inset-0 bg-gradient-to-t from-[#171513] via-transparent to-black/30"></div>
-            <span class="absolute top-3.5 left-3.5 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold bg-black/75 backdrop-blur-xs text-amber-300 border border-amber-500/20">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25"></div>
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold bg-black/75 text-amber-300 border border-amber-500/20">
               ${item.category}
             </span>
             ${
               off > 0 && available
-                ? `<span class="absolute top-3.5 right-3.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white shadow">${off}% OFF</span>`
+                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-600 text-white shadow">${off}% OFF</span>`
                 : ""
             }
             ${
               !available
-                ? `<span class="absolute top-3.5 right-3.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white">Sold Out</span>`
-                : `<span class="absolute bottom-3 right-3.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/75 text-stone-200">~${item.prepTime}m prep</span>`
+                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-rose-600 text-white">Sold Out</span>`
+                : `<span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-medium bg-black/75 text-stone-200">~${item.prepTime}m${item.spiceLevel ? ` • ${item.spiceLevel}` : ""}</span>`
             }
           </div>
 
-          <div class="p-6 flex-1 flex flex-col justify-between gap-5">
+          <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
             <div>
               <div class="flex items-start justify-between gap-3">
-                <h3 class="font-serif text-xl font-bold text-white leading-snug group-hover:text-amber-300 transition">${item.name}</h3>
+                <h3 class="${titleClasses}">${item.name}</h3>
                 <div class="text-right whitespace-nowrap">
-                  <span class="text-base font-bold text-amber-400">${formatPrice(finalPrice)}</span>
+                  <span class="${priceClasses}">${formatPrice(finalPrice)}</span>
                   ${
                     off > 0
-                      ? `<span class="block text-xs line-through text-stone-500">${formatPrice(item.price)}</span>`
+                      ? `<span class="block text-xs line-through text-stone-400">${formatPrice(item.price)}</span>`
                       : ""
                   }
                 </div>
               </div>
-              <p class="text-xs sm:text-sm text-stone-400 mt-2 line-clamp-2 leading-relaxed">${item.description}</p>
+              <p class="${descClasses}">${item.description}</p>
             </div>
 
             <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"}
-              class="w-full py-3 px-4 rounded-full text-xs uppercase tracking-[0.18em] font-bold transition ${
-                available
-                  ? "bg-stone-900 hover:bg-amber-500 text-amber-300 hover:text-stone-950 border border-amber-500/30 cursor-pointer"
-                  : "bg-stone-900 text-stone-600 border border-stone-800 cursor-not-allowed"
-              }">
+              class="w-full py-3 px-4 rounded-full text-xs uppercase tracking-[0.16em] font-bold transition ${btnClasses}">
               ${available ? "+ Add to Order" : "Currently Unavailable"}
             </button>
           </div>
@@ -353,6 +526,7 @@ function renderMenu() {
     })
     .join("");
 }
+
 function renderCart() {
   const { cart, subtotal, deliveryFee, total, estDeliveryMins, itemCount } =
     Store.getCartSummary();
@@ -367,6 +541,11 @@ function renderCart() {
   els.cartDeliveryFee.textContent = formatPrice(deliveryFee);
   els.cartGrandTotal.textContent = formatPrice(total);
   els.placeOrderBtn.disabled = cart.length === 0;
+
+  // Mobile floating bar sync
+  els.mobileCartCount.textContent = itemCount;
+  els.mobileCartTotal.textContent = formatPrice(total);
+  els.mobileOrderBar.classList.toggle("hidden", itemCount === 0);
 
   if (cart.length === 0) {
     els.cartItemsContainer.innerHTML = `
@@ -391,10 +570,10 @@ function renderCart() {
 
         <div class="flex items-center gap-2 shrink-0">
           <button type="button" data-qty-delta="-1" data-item-id="${item.id}"
-            class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">−</button>
+            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">−</button>
           <span class="w-5 text-center text-sm font-semibold">${item.qty}</span>
           <button type="button" data-qty-delta="1" data-item-id="${item.id}"
-            class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">+</button>
+            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">+</button>
         </div>
       </div>
     `,
@@ -426,7 +605,23 @@ function closeProfile() {
   setTimeout(() => els.profileBackdrop.classList.add("hidden"), 250);
 }
 
+els.themeToggleBtn.addEventListener("click", () => {
+  currentTheme = isLight() ? "dark" : "light";
+  localStorage.setItem(THEME_KEY, currentTheme);
+  applyTheme();
+  renderCategories();
+  renderMenu();
+});
+
+els.mobileSignupLink.addEventListener("click", (e) => {
+  if (els.mobileSignupLink.getAttribute("href") === "#profile") {
+    e.preventDefault();
+    openProfile();
+  }
+});
+
 els.openCartBtn.addEventListener("click", openCart);
+els.mobileOpenCartBtn.addEventListener("click", openCart);
 els.closeCartBtn.addEventListener("click", closeCart);
 els.cartBackdrop.addEventListener("click", closeCart);
 
@@ -539,6 +734,7 @@ els.checkoutForm.addEventListener("submit", async (e) => {
 });
 
 function refreshAll() {
+  applyTheme();
   renderBrand();
   renderCategories();
   renderMenu();
