@@ -16,104 +16,6 @@
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-      @keyframes qasrHeroFadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(18px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes qasrCardEnter {
-        from {
-          opacity: 0;
-          transform: translateY(14px) scale(0.985);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      @keyframes qasrCrestPulse {
-        0%,
-        100% {
-          box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.22);
-        }
-        50% {
-          box-shadow: 0 0 0 7px rgba(245, 158, 11, 0);
-        }
-      }
-
-      .qasr-hero-stagger > * {
-        opacity: 0;
-        animation: qasrHeroFadeUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-      }
-      .qasr-hero-stagger > *:nth-child(1) {
-        animation-delay: 0.06s;
-      }
-      .qasr-hero-stagger > *:nth-child(2) {
-        animation-delay: 0.16s;
-      }
-      .qasr-hero-stagger > *:nth-child(3) {
-        animation-delay: 0.26s;
-      }
-      .qasr-hero-stagger > *:nth-child(4) {
-        animation-delay: 0.36s;
-      }
-      .qasr-hero-stagger > *:nth-child(5) {
-        animation-delay: 0.46s;
-      }
-
-      .qasr-reveal {
-        opacity: 0;
-        transform: translateY(22px);
-        transition:
-          opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-          transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-      .qasr-reveal.is-visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .qasr-card-animate {
-        opacity: 0;
-        animation: qasrCardEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-      }
-
-      .qasr-crest-glow {
-        animation: qasrCrestPulse 3.4s ease-in-out infinite;
-      }
-
-      .qasr-pressable {
-        transition:
-          transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
-          background-color 0.2s ease,
-          border-color 0.2s ease,
-          box-shadow 0.25s ease;
-      }
-      .qasr-pressable:active:not(:disabled) {
-        transform: scale(0.96);
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .qasr-hero-stagger > *,
-        .qasr-reveal,
-        .qasr-card-animate,
-        .qasr-crest-glow,
-        .qasr-pressable {
-          animation: none !important;
-          transition: none !important;
-          opacity: 1 !important;
-          transform: none !important;
-        }
-      }
-    </style>
   </head>
   <body
     id="pageBody"
@@ -173,7 +75,7 @@
             id="userProfileBtn"
             type="button"
             title="My Profile & Orders"
-            class="hidden items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-stone-900 border border-amber-500/30 text-xs font-semibold text-amber-300 qasr-pressable cursor-pointer shrink-0"
+            class="hidden items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-stone-900 border border-amber-500/30 text-xs font-semibold text-amber-300 cursor-pointer shrink-0"
           >
             <span
               class="w-6 h-6 rounded-full bg-amber-600 text-stone-950 flex items-center justify-center font-bold text-xs"
@@ -193,14 +95,14 @@
           >
             <span
               id="navLogoBadge"
-              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0 qasr-crest-glow group-hover:scale-105 transition duration-300"
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0"
             >
               <svg class="w-6 h-6"><use href="#qasr-crest-logo"></use></svg>
             </span>
             <span class="flex flex-col min-w-0">
               <span
                 id="navBrandName"
-                class="font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition"
+                class="font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate transition"
               >
                 Qasr-e-Dastarkhwan
               </span>
@@ -219,23 +121,17 @@
           id="desktopNav"
           class="hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-medium text-stone-300"
         >
-          <a href="#story-section" class="hover:text-amber-400 transition"
-            >Story</a
-          >
-          <a href="#menu-section" class="hover:text-amber-400 transition"
-            >Menu</a
-          >
-          <a href="#location-section" class="hover:text-amber-400 transition"
-            >Location</a
-          >
+          <a href="#story-section" class="transition">Story</a>
+          <a href="#menu-section" class="transition">Menu</a>
+          <a href="#location-section" class="transition">Location</a>
           <a
             href="./track-order.html"
-            class="flex items-center gap-1.5 hover:text-amber-400 transition"
+            class="flex items-center gap-1.5 transition"
           >
             <span>Track</span>
             <span
               id="activeOrderDot"
-              class="w-2 h-2 rounded-full bg-emerald-400 animate-ping hidden"
+              class="w-2 h-2 rounded-full bg-emerald-400 hidden"
             ></span>
           </a>
         </nav>
@@ -247,11 +143,9 @@
             type="button"
             aria-label="Switch Dark or Light Theme"
             title="Switch Dark / Light Theme"
-            class="px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 text-amber-300 text-xs font-semibold flex items-center gap-1.5 qasr-pressable cursor-pointer"
+            class="px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition"
           >
-            <span id="themeIcon" class="transition-transform duration-300"
-              >☀️</span
-            >
+            <span id="themeIcon">☀️</span>
             <span
               id="themeLabel"
               class="hidden sm:inline text-[11px] uppercase tracking-wider"
@@ -263,14 +157,14 @@
             <a
               href="./auth.html?mode=login"
               id="navLoginBtn"
-              class="px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 qasr-pressable"
+              class="px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 transition"
             >
               Login
             </a>
             <a
               href="./auth.html?mode=signup"
               id="navSignupBtn"
-              class="hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 qasr-pressable"
+              class="hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 transition"
             >
               Sign Up
             </a>
@@ -279,7 +173,7 @@
           <a
             href="./admin/login.html"
             id="navAdminLink"
-            class="hidden xl:inline text-[11px] uppercase tracking-widest text-stone-500 hover:text-stone-300 transition"
+            class="hidden xl:inline text-[11px] uppercase tracking-widest text-stone-500 transition"
           >
             Staff
           </a>
@@ -287,12 +181,12 @@
           <button
             id="openCartBtn"
             type="button"
-            class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs uppercase tracking-wider font-bold flex items-center gap-1.5 sm:gap-2 shadow-lg qasr-pressable cursor-pointer"
+            class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-amber-500 text-stone-950 text-xs uppercase tracking-wider font-bold flex items-center gap-1.5 sm:gap-2 shadow-lg cursor-pointer transition"
           >
             <span>Cart</span>
             <span
               id="cartCountBadge"
-              class="px-1.5 sm:px-2 py-0.5 text-[11px] rounded-full bg-stone-950 text-amber-300 font-bold transition-transform duration-200"
+              class="px-1.5 sm:px-2 py-0.5 text-[11px] rounded-full bg-stone-950 text-amber-300 font-bold transition"
               >0</span
             >
           </button>
@@ -305,12 +199,10 @@
         class="sm:hidden border-t border-stone-800/70 px-3 py-2 flex items-center justify-between text-[11px] text-stone-300"
       >
         <div class="flex items-center gap-4">
-          <a href="#menu-section" class="hover:text-amber-400 font-medium"
-            >Menu</a
-          >
+          <a href="#menu-section" class="font-medium">Menu</a>
           <a
             href="./track-order.html"
-            class="flex items-center gap-1 hover:text-amber-400 font-medium"
+            class="flex items-center gap-1 font-medium"
           >
             <span>Track Order</span>
             <span
@@ -318,11 +210,7 @@
               class="w-1.5 h-1.5 rounded-full bg-emerald-400 hidden"
             ></span>
           </a>
-          <a
-            href="./admin/login.html"
-            class="text-stone-400 hover:text-amber-400"
-            >Admin</a
-          >
+          <a href="./admin/login.html" class="text-stone-400">Admin</a>
         </div>
         <a
           href="./auth.html?mode=signup"
@@ -337,7 +225,7 @@
     <!-- Floating Added-to-Cart Toast -->
     <div
       id="cartToast"
-      class="fixed top-20 sm:top-24 right-4 sm:right-8 z-40 pointer-events-none opacity-0 -translate-y-2 transition-all duration-300"
+      class="fixed top-20 sm:top-24 right-4 sm:right-8 z-40 pointer-events-none opacity-0 transition duration-200"
     >
       <div
         class="px-4 py-2.5 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 shadow-2xl text-xs font-semibold flex items-center gap-2"
@@ -355,7 +243,7 @@
       <img
         src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1800&q=85"
         alt="Fine dining table setting and signature culinary craft"
-        class="absolute inset-0 w-full h-full object-cover scale-105 opacity-40 transition-transform duration-1000"
+        class="absolute inset-0 w-full h-full object-cover opacity-40"
       />
       <div
         class="absolute inset-0 bg-gradient-to-r from-[#0F0E0D] via-[#0F0E0D]/80 to-[#0F0E0D]/35"
@@ -367,7 +255,7 @@
       <div
         class="relative max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 w-full"
       >
-        <div class="max-w-2xl space-y-5 sm:space-y-6 qasr-hero-stagger">
+        <div class="max-w-2xl space-y-5 sm:space-y-6">
           <div class="inline-flex items-center gap-2.5">
             <span
               class="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center"
@@ -402,13 +290,13 @@
           >
             <a
               href="#menu-section"
-              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-[0.2em] shadow-xl qasr-pressable"
+              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-amber-500 text-stone-950 font-bold text-xs uppercase tracking-[0.2em] shadow-xl transition"
             >
               Explore The Menu
             </a>
             <a
               href="./track-order.html"
-              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-stone-900/85 hover:bg-stone-800 text-stone-100 border border-amber-500/30 font-semibold text-xs uppercase tracking-[0.2em] qasr-pressable"
+              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-stone-900/85 text-stone-100 border border-amber-500/30 font-semibold text-xs uppercase tracking-[0.2em] transition"
             >
               Live Order Tracker
             </a>
@@ -464,7 +352,7 @@
       class="py-16 sm:py-20 bg-[#141210] border-b border-amber-500/10 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center qasr-reveal"
+        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center"
       >
         <div class="lg:col-span-5 relative">
           <div
@@ -473,7 +361,7 @@
             <img
               src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80"
               alt="Signature charcoal grill presentation"
-              class="w-full h-full object-cover hover:scale-105 transition duration-700"
+              class="w-full h-full object-cover"
             />
           </div>
           <div
@@ -514,7 +402,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div
               id="featureCard1"
-              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300"
+              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 transition duration-300"
             >
               <h3
                 class="font-serif text-base sm:text-lg font-bold text-amber-400"
@@ -528,7 +416,7 @@
             </div>
             <div
               id="featureCard2"
-              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300"
+              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 transition duration-300"
             >
               <h3
                 class="font-serif text-base sm:text-lg font-bold text-amber-400"
@@ -550,7 +438,7 @@
       id="menu-section"
       class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-16 sm:py-20 space-y-8 sm:space-y-10"
     >
-      <div class="text-center max-w-2xl mx-auto space-y-2.5 qasr-reveal">
+      <div class="text-center max-w-2xl mx-auto space-y-2.5">
         <p
           class="text-xs font-semibold uppercase tracking-[0.3em] text-amber-400"
         >
@@ -566,7 +454,7 @@
       </div>
 
       <div
-        class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pb-3 border-b border-stone-800/80 qasr-reveal"
+        class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pb-3 border-b border-stone-800/80"
       >
         <div
           id="categoryFilters"
@@ -595,7 +483,7 @@
       class="bg-[#141210] border-t border-amber-500/15 py-16 sm:py-20 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center qasr-reveal"
+        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center"
       >
         <div class="lg:col-span-5 space-y-4">
           <div class="inline-flex items-center gap-3">
@@ -685,37 +573,11 @@
             Explore
           </p>
           <ul class="space-y-2.5">
-            <li>
-              <a href="#story-section" class="hover:text-amber-300 transition"
-                >Our Culinary Story</a
-              >
-            </li>
-            <li>
-              <a href="#menu-section" class="hover:text-amber-300 transition"
-                >Full Menu</a
-              >
-            </li>
-            <li>
-              <a
-                href="./track-order.html"
-                class="hover:text-amber-300 transition"
-                >Track Live Order</a
-              >
-            </li>
-            <li>
-              <a
-                href="./auth.html?mode=login"
-                class="hover:text-amber-300 transition"
-                >Customer Login</a
-              >
-            </li>
-            <li>
-              <a
-                href="./admin/login.html"
-                class="hover:text-amber-300 transition"
-                >Admin Portal</a
-              >
-            </li>
+            <li><a href="#story-section">Our Culinary Story</a></li>
+            <li><a href="#menu-section">Full Menu</a></li>
+            <li><a href="./track-order.html">Track Live Order</a></li>
+            <li><a href="./auth.html?mode=login">Customer Login</a></li>
+            <li><a href="./admin/login.html">Admin Portal</a></li>
           </ul>
         </div>
 
@@ -755,7 +617,7 @@
       <button
         id="mobileOpenCartBtn"
         type="button"
-        class="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-2xl flex items-center justify-between qasr-pressable cursor-pointer"
+        class="w-full py-3.5 px-5 rounded-2xl bg-amber-500 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-2xl flex items-center justify-between cursor-pointer transition"
       >
         <span>View Cart (<span id="mobileCartCount">0</span> items)</span>
         <span id="mobileCartTotal" class="font-extrabold">Rs. 0</span>
@@ -765,11 +627,11 @@
     <!-- LEFT SLIDE-OVER: USER PROFILE & MY ORDERS DRAWER -->
     <div
       id="profileBackdrop"
-      class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden transition-opacity duration-300"
+      class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden"
     ></div>
     <aside
       id="profileDrawer"
-      class="fixed top-0 left-0 h-full w-full max-w-md bg-white text-stone-900 z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-out flex flex-col"
+      class="fixed top-0 left-0 h-full w-full max-w-md bg-white text-stone-900 z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col"
     >
       <div
         class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#0F0E0D] text-white"
@@ -792,7 +654,7 @@
         <button
           id="closeProfileBtn"
           type="button"
-          class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold qasr-pressable cursor-pointer"
+          class="px-3 py-1.5 rounded-lg bg-stone-800 text-stone-200 text-xs font-semibold cursor-pointer"
         >
           ✕ Close
         </button>
@@ -816,7 +678,7 @@
         <button
           id="userLogoutBtn"
           type="button"
-          class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold qasr-pressable cursor-pointer"
+          class="w-full py-2.5 rounded-xl bg-rose-600 text-white text-xs font-semibold cursor-pointer"
         >
           Logout of Account
         </button>
@@ -826,11 +688,11 @@
     <!-- RIGHT SLIDE-OVER: SINGLE-ITEM "ORDER NOW" OR FULL "CART" CHECKOUT DRAWER -->
     <div
       id="cartBackdrop"
-      class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden transition-opacity duration-300"
+      class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden"
     ></div>
     <aside
       id="cartDrawer"
-      class="fixed top-0 right-0 h-full w-full max-w-lg bg-white text-stone-900 z-50 shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col"
+      class="fixed top-0 right-0 h-full w-full max-w-lg bg-white text-stone-900 z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
     >
       <div
         class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#0F0E0D] text-white"
@@ -850,14 +712,14 @@
           <button
             id="showFullCartBtn"
             type="button"
-            class="hidden px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold qasr-pressable cursor-pointer"
+            class="hidden px-3 py-1.5 rounded-lg bg-amber-500 text-stone-950 text-xs font-bold cursor-pointer"
           >
             Show Cart (<span id="directShowCartCount">0</span>)
           </button>
           <button
             id="closeCartBtn"
             type="button"
-            class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold qasr-pressable cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-stone-800 text-stone-200 text-sm font-semibold cursor-pointer"
           >
             ✕ Close
           </button>
@@ -893,14 +755,14 @@
             type="text"
             required
             placeholder="Your Full Name"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
           />
           <input
             id="custPhone"
             type="tel"
             required
             placeholder="Phone Number (e.g. 03001234567)"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
           />
 
           <div class="space-y-1.5">
@@ -911,7 +773,7 @@
               <button
                 id="useMyGpsBtn"
                 type="button"
-                class="text-[11px] font-semibold text-amber-700 hover:underline cursor-pointer"
+                class="text-[11px] font-semibold text-amber-700 cursor-pointer"
               >
                 Use Current GPS
               </button>
@@ -933,20 +795,20 @@
             type="text"
             required
             placeholder="Detected Multan Address (or add house/street #)"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
           />
           <input
             id="custNotes"
             type="text"
             placeholder="Delivery / Spice Notes (optional)"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
           />
 
           <button
             id="placeOrderBtn"
             type="submit"
             disabled
-            class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold text-sm qasr-pressable cursor-pointer"
+            class="w-full py-3 px-4 rounded-xl bg-emerald-600 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold text-sm cursor-pointer"
           >
             Place Order & Send on WhatsApp
           </button>
@@ -966,14 +828,14 @@
               href="#"
               target="_blank"
               rel="noopener noreferrer"
-              class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+              class="px-3.5 py-2 rounded-lg bg-emerald-600 text-white font-semibold"
             >
               Open WhatsApp Receipt ↗
             </a>
             <a
               id="trackCreatedOrderLink"
               href="./track-order.html"
-              class="px-3.5 py-2 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-semibold"
+              class="px-3.5 py-2 rounded-lg bg-stone-900 text-white font-semibold"
             >
               Track Order Live →
             </a>

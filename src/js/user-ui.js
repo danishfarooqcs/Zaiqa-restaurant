@@ -18,6 +18,7 @@ let searchQuery = "";
 let currentTheme =
   localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
 let toastTimer = null;
+let shouldAnimateMenuCards = true;
 
 // null = checkout uses full cart; object = single-item "Order Now" mode
 let directOrderItem = null;
@@ -168,8 +169,8 @@ function applyTheme() {
     : "sticky top-0 z-30 bg-[#0F0E0D]/92 backdrop-blur-md border-b border-amber-500/15 transition-colors duration-300";
 
   els.navBrandName.className = light
-    ? "font-serif text-sm sm:text-xl font-bold text-amber-800 tracking-wide sm:tracking-wider uppercase truncate transition"
-    : "font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition";
+    ? "font-serif text-sm sm:text-xl font-bold text-amber-800 tracking-wide sm:tracking-wider uppercase truncate transition-colors"
+    : "font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate transition-colors";
 
   els.navSubtitle.className = light
     ? "text-[10px] uppercase tracking-[0.24em] text-stone-500 hidden sm:block"
@@ -216,8 +217,8 @@ function applyTheme() {
     : "text-stone-300 text-sm sm:text-base leading-relaxed";
 
   const cardSurface = light
-    ? "p-4 sm:p-5 rounded-2xl bg-[#FAF7F2] border border-stone-200 hover:-translate-y-0.5 transition duration-300"
-    : "p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300";
+    ? "p-4 sm:p-5 rounded-2xl bg-[#FAF7F2] border border-stone-200 transition-colors duration-300"
+    : "p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 transition-colors duration-300";
   els.featureCard1.className = cardSurface;
   els.featureCard2.className = cardSurface;
 
@@ -230,8 +231,8 @@ function applyTheme() {
     : "text-xs sm:text-sm text-stone-400";
 
   els.menuSearchInput.className = light
-    ? "w-full px-4 py-2.5 rounded-full bg-white border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 transition"
-    : "w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition";
+    ? "w-full px-4 py-2.5 rounded-full bg-white border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 transition-colors"
+    : "w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition-colors";
 
   els.locationSection.className = light
     ? "bg-white border-t border-stone-200 py-16 sm:py-20 transition-colors duration-300"
@@ -484,27 +485,33 @@ function renderMenu() {
 
   if (filtered.length === 0) {
     els.menuGrid.innerHTML = `
-      <div class="col-span-full ${light ? "bg-white border-stone-200 text-stone-500" : "bg-[#181614] border-stone-800 text-stone-400"} border rounded-2xl p-12 text-center qasr-card-animate">
+      <div class="col-span-full ${light ? "bg-white border-stone-200 text-stone-500" : "bg-[#181614] border-stone-800 text-stone-400"} border rounded-2xl p-12 text-center">
         No dishes found matching your selection.
       </div>
     `;
+    shouldAnimateMenuCards = false;
     return;
   }
+
+  const animateClass = shouldAnimateMenuCards ? "qasr-card-animate" : "";
 
   els.menuGrid.innerHTML = filtered
     .map((item, idx) => {
       const available = Boolean(item.inStock);
       const off = Number(item.offPercent || 0);
       const finalPrice = getEffectivePrice(item);
-      const staggerDelay = Math.min(idx * 60, 360);
+      const staggerDelay = shouldAnimateMenuCards ? Math.min(idx * 50, 300) : 0;
+      const delayStyle = shouldAnimateMenuCards
+        ? `style="animation-delay: ${staggerDelay}ms;"`
+        : "";
 
       const cardClasses = light
-        ? "qasr-card-animate group bg-white border border-stone-200 hover:border-amber-600/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col"
-        : "qasr-card-animate group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col";
+        ? `${animateClass} bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm flex flex-col`
+        : `${animateClass} bg-[#171513] border border-stone-800/90 rounded-2xl overflow-hidden shadow-xl flex flex-col`;
 
       const titleClasses = light
-        ? "font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug group-hover:text-amber-800 transition"
-        : "font-serif text-lg sm:text-xl font-bold text-white leading-snug group-hover:text-amber-300 transition";
+        ? "font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug"
+        : "font-serif text-lg sm:text-xl font-bold text-white leading-snug";
 
       const priceClasses = light
         ? "text-base font-bold text-amber-800"
@@ -525,11 +532,11 @@ function renderMenu() {
         : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
 
       return `
-        <article class="${cardClasses}" style="animation-delay: ${staggerDelay}ms;">
+        <article class="${cardClasses}" ${delayStyle}>
           <div class="relative h-48 sm:h-56 bg-stone-900 overflow-hidden">
-            <img src="${item.image}" alt="${item.name}" loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 ${available ? "" : "grayscale opacity-50"}" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25"></div>
+            <img src="${item.image}" alt="${item.name}"
+              class="w-full h-full object-cover ${available ? "" : "grayscale opacity-50"}" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25 pointer-events-none"></div>
             <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold bg-black/75 text-amber-300 border border-amber-500/20">
               ${item.category}
             </span>
@@ -574,6 +581,8 @@ function renderMenu() {
       `;
     })
     .join("");
+
+  shouldAnimateMenuCards = false;
 }
 
 function renderDrawer() {
@@ -738,12 +747,14 @@ els.categoryFilters.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-category]");
   if (!btn) return;
   selectedCategory = btn.dataset.category;
+  shouldAnimateMenuCards = true;
   renderCategories();
   renderMenu();
 });
 
 els.menuSearchInput.addEventListener("input", (e) => {
   searchQuery = e.target.value;
+  shouldAnimateMenuCards = true;
   renderMenu();
 });
 
