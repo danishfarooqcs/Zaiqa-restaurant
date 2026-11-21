@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account | Login & Sign Up</title>
+    <link rel="stylesheet" href="./dist/output.css" />
+  </head>
+  <body class="bg-brand-cream text-stone-900 min-h-screen flex flex-col">
+    <header class="bg-brand-dark text-stone-100 border-b border-stone-800">
+      <div
+        class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between"
+      >
+        <a href="./index.html" class="text-xl font-bold text-amber-400"
+          >← Back to Menu</a
+        >
+        <a
+          href="./track-order.html"
+          class="text-sm text-stone-300 hover:text-amber-400"
+          >Track Order</a
+        >
+      </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-4">
+      <div
+        class="w-full max-w-md bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6"
+      >
+        <!-- Mode Tabs -->
+        <div
+          class="grid grid-cols-3 gap-1 bg-stone-100 p-1 rounded-xl text-xs font-semibold"
+        >
+          <button
+            type="button"
+            data-mode="login"
+            class="mode-btn py-2 rounded-lg bg-white text-stone-900 shadow-xs cursor-pointer"
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            data-mode="signup"
+            class="mode-btn py-2 rounded-lg text-stone-600 cursor-pointer"
+          >
+            Sign Up
+          </button>
+          <button
+            type="button"
+            data-mode="forgot"
+            class="mode-btn py-2 rounded-lg text-stone-600 cursor-pointer"
+          >
+            Forgot PW
+          </button>
+        </div>
+
+        <p id="authFeedback" class="hidden text-xs p-3 rounded-xl"></p>
+
+        <!-- LOGIN FORM -->
+        <form id="userLoginForm" class="auth-panel space-y-4">
+          <h1 class="text-2xl font-bold text-stone-900">Customer Login</h1>
+          <input
+            id="loginEmail"
+            type="email"
+            required
+            placeholder="Email Address"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <input
+            id="loginPassword"
+            type="password"
+            required
+            placeholder="Password"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <button
+            type="submit"
+            class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold cursor-pointer"
+          >
+            Login
+          </button>
+        </form>
+
+        <!-- SIGNUP FORM -->
+        <form id="userSignupForm" class="auth-panel hidden space-y-3.5">
+          <h1 class="text-2xl font-bold text-stone-900">Create Account</h1>
+          <input
+            id="signupName"
+            type="text"
+            required
+            placeholder="Full Name"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <input
+            id="signupEmail"
+            type="email"
+            required
+            placeholder="Email Address (unique)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <input
+            id="signupPhone"
+            type="tel"
+            required
+            placeholder="Phone (e.g. 03001234567)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <input
+            id="signupAddress"
+            type="text"
+            required
+            placeholder="Delivery Address (Street, Area, City)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <input
+            id="signupPassword"
+            type="password"
+            required
+            placeholder="Password (min 6 chars)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <button
+            type="submit"
+            class="w-full py-3 rounded-xl bg-stone-900 hover:bg-amber-600 text-white text-sm font-semibold cursor-pointer"
+          >
+            Sign Up
+          </button>
+        </form>
+
+        <!-- FORGOT PASSWORD FORM -->
+        <form id="userForgotForm" class="auth-panel hidden space-y-3.5">
+          <h1 class="text-2xl font-bold text-stone-900">Reset Password</h1>
+          <div class="flex gap-2">
+            <input
+              id="forgotEmail"
+              type="email"
+              required
+              placeholder="Your Registered Email"
+              class="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+            />
+            <button
+              id="sendUserCodeBtn"
+              type="button"
+              class="px-3.5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold whitespace-nowrap cursor-pointer"
+            >
+              Send Code
+            </button>
+          </div>
+          <input
+            id="forgotCode"
+            type="text"
+            required
+            placeholder="6-Digit Verification Code"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <input
+            id="forgotNewPassword"
+            type="password"
+            required
+            placeholder="New Password (min 6 chars)"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:border-amber-600"
+          />
+          <button
+            type="submit"
+            class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold cursor-pointer"
+          >
+            Update Password
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <script type="module">
+      import { Auth } from "./src/js/auth.js";
+
+      const modeBtns = document.querySelectorAll(".mode-btn");
+      const panels = {
+        login: document.getElementById("userLoginForm"),
+        signup: document.getElementById("userSignupForm"),
+        forgot: document.getElementById("userForgotForm"),
+      };
+      const feedback = document.getElementById("authFeedback");
+
+      function showMsg(msg, ok = false) {
+        feedback.textContent = msg;
+        feedback.classList.remove(
+          "hidden",
+          "bg-rose-50",
+          "text-rose-700",
+          "border-rose-200",
+          "bg-emerald-50",
+          "text-emerald-800",
+          "border-emerald-200",
+        );
+        feedback.classList.add(
+          "border",
+          ...(ok
+            ? ["bg-emerald-50", "text-emerald-800", "border-emerald-200"]
+            : ["bg-rose-50", "text-rose-700", "border-rose-200"]),
+        );
+      }
+
+      modeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const mode = btn.dataset.mode;
+          feedback.classList.add("hidden");
+          modeBtns.forEach((b) => {
+            b.classList.toggle("bg-white", b === btn);
+            b.classList.toggle("text-stone-900", b === btn);
+            b.classList.toggle("shadow-xs", b === btn);
+            b.classList.toggle("text-stone-600", b !== btn);
+          });
+          Object.entries(panels).forEach(([key, form]) => {
+            form.classList.toggle("hidden", key !== mode);
+          });
+        });
+      });
+
+      document
+        .getElementById("userLoginForm")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const res = Auth.loginUser(
+            document.getElementById("loginEmail").value,
+            document.getElementById("loginPassword").value,
+          );
+          if (!res.ok) return showMsg(res.msg, false);
+          showMsg(`Welcome back, ${res.user.name}! Redirecting...`, true);
+          setTimeout(() => (window.location.href = "./index.html"), 700);
+        });
+
+      document
+        .getElementById("userSignupForm")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const res = Auth.signupUser({
+            name: document.getElementById("signupName").value,
+            email: document.getElementById("signupEmail").value,
+            phone: document.getElementById("signupPhone").value,
+            address: document.getElementById("signupAddress").value,
+            password: document.getElementById("signupPassword").value,
+          });
+          if (!res.ok) return showMsg(res.msg, false);
+          showMsg("Account created! Redirecting to menu...", true);
+          setTimeout(() => (window.location.href = "./index.html"), 700);
+        });
+
+      document
+        .getElementById("sendUserCodeBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("forgotEmail").value;
+          const res = await Auth.sendVerificationCode(email, "user-reset");
+          showMsg(res.msg, res.ok);
+        });
+
+      document
+        .getElementById("userForgotForm")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const res = Auth.resetUserPassword(
+            document.getElementById("forgotEmail").value,
+            document.getElementById("forgotCode").value,
+            document.getElementById("forgotNewPassword").value,
+          );
+          showMsg(res.msg, res.ok);
+        });
+    </script>
+  </body>
+</html>

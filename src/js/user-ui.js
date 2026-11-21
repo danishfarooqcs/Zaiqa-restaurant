@@ -1,5 +1,7 @@
 // src/js/user-ui.js
 import { Store } from "./store.js";
+import { Auth } from "./auth.js";
+import { Validators } from "./validators.js";
 
 const CATEGORIES = [
   "All",
@@ -42,6 +44,7 @@ function formatPrice(amount) {
   return `Rs. ${Number(amount || 0).toLocaleString()}`;
 }
 
+// 1. INSIDE renderBrand()
 function renderBrand() {
   const settings = Store.getSettings();
   document.title = `${settings.restaurantName} | Order Fresh Online`;
@@ -53,6 +56,23 @@ function renderBrand() {
   const hasActive =
     lastOrder && !["Delivered", "Cancelled"].includes(lastOrder.status);
   els.activeOrderDot.classList.toggle("hidden", !hasActive);
+
+  // Auto-fill logged-in user details if empty & update navbar auth label
+  const currentUser = Auth.getCurrentUser();
+  const authLink = document.getElementById("navAuthLink");
+  if (authLink) {
+    authLink.textContent = currentUser
+      ? `Hi, ${currentUser.name.split(" ")[0]}`
+      : "Login / Sign Up";
+  }
+  if (currentUser) {
+    const nameEl = document.getElementById("custName");
+    const phoneEl = document.getElementById("custPhone");
+    const addrEl = document.getElementById("custAddress");
+    if (nameEl && !nameEl.value) nameEl.value = currentUser.name;
+    if (phoneEl && !phoneEl.value) phoneEl.value = currentUser.phone;
+    if (addrEl && !addrEl.value) addrEl.value = currentUser.address;
+  }
 }
 
 function renderCategories() {
@@ -253,12 +273,29 @@ els.cartItemsContainer.addEventListener("click", (e) => {
   renderCart();
 });
 
+// 2. CHECKOUT FORM SUBMIT WITH VALIDATION
 els.checkoutForm.addEventListener("submit", (e) => {
   e.preventDefault();
+
+  const nameCheck = Validators.validateName(
+    document.getElementById("custName").value,
+  );
+  if (!nameCheck.ok) return alert(nameCheck.msg);
+
+  const phoneCheck = Validators.validatePhone(
+    document.getElementById("custPhone").value,
+  );
+  if (!phoneCheck.ok) return alert(phoneCheck.msg);
+
+  const addrCheck = Validators.validateAddress(
+    document.getElementById("custAddress").value,
+  );
+  if (!addrCheck.ok) return alert(addrCheck.msg);
+
   const order = Store.createOrder({
-    customerName: document.getElementById("custName").value.trim(),
-    phone: document.getElementById("custPhone").value.trim(),
-    address: document.getElementById("custAddress").value.trim(),
+    customerName: nameCheck.value,
+    phone: phoneCheck.value,
+    address: addrCheck.value,
     notes: document.getElementById("custNotes").value.trim(),
   });
 

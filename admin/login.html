@@ -10,55 +10,132 @@
     class="bg-brand-dark text-stone-100 min-h-screen flex items-center justify-center p-4"
   >
     <div
-      class="w-full max-w-md bg-brand-card border border-stone-800 rounded-2xl p-8 shadow-2xl"
+      class="w-full max-w-md bg-brand-card border border-stone-800 rounded-2xl p-8 shadow-2xl space-y-6"
     >
-      <div class="text-center mb-8">
+      <div class="text-center">
         <span
           class="inline-block px-3 py-1 text-xs font-semibold tracking-wider uppercase rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3"
         >
           Admin Control Panel
         </span>
-        <h1 class="text-3xl font-bold text-white">Staff Access</h1>
-        <p class="text-stone-400 text-sm mt-2">
-          Enter admin PIN to manage menu, orders & WhatsApp settings
+        <h1 id="adminAuthHeading" class="text-3xl font-bold text-white">
+          Staff Login
+        </h1>
+        <p class="text-stone-400 text-xs mt-1.5">
+          Default Mail:
+          <span class="text-stone-200">danishfarooq.cs@gmail.com</span>
         </p>
       </div>
 
-      <form id="loginForm" class="space-y-5">
+      <p id="adminMsg" class="hidden text-xs p-3 rounded-xl"></p>
+
+      <!-- Admin Login -->
+      <form id="adminLoginForm" class="space-y-4">
         <div>
-          <label
-            for="adminPin"
-            class="block text-sm font-medium text-stone-300 mb-1.5"
-            >Admin PIN</label
+          <label class="block text-xs font-medium text-stone-300 mb-1"
+            >Admin Email</label
           >
           <input
-            type="password"
-            id="adminPin"
-            value="admin123"
+            id="adminEmail"
+            type="email"
             required
-            class="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-700 text-white focus:outline-none focus:border-amber-500"
-            placeholder="Enter PIN (default: admin123)"
+            value="danishfarooq.cs@gmail.com"
+            class="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-700 text-sm text-white focus:outline-none focus:border-amber-500"
           />
         </div>
-
-        <p id="loginError" class="text-sm text-rose-400 hidden">
-          Incorrect PIN. Try <code>admin123</code>.
-        </p>
-
+        <div>
+          <label class="block text-xs font-medium text-stone-300 mb-1"
+            >Password</label
+          >
+          <input
+            id="adminPassword"
+            type="password"
+            required
+            placeholder="Enter admin password"
+            class="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-700 text-sm text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
         <button
           type="submit"
-          class="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold transition cursor-pointer"
+          class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold transition cursor-pointer"
         >
           Unlock Dashboard
+        </button>
+        <button
+          id="toggleResetBtn"
+          type="button"
+          class="w-full text-xs text-amber-400 hover:underline pt-1 cursor-pointer"
+        >
+          Forgot / Change Password via Email Code?
+        </button>
+      </form>
+
+      <!-- Admin Password Reset via Email Code -->
+      <form id="adminResetForm" class="hidden space-y-3.5">
+        <div>
+          <label class="block text-xs font-medium text-stone-300 mb-1"
+            >Admin Email</label
+          >
+          <div class="flex gap-2">
+            <input
+              id="resetAdminEmail"
+              type="email"
+              required
+              value="danishfarooq.cs@gmail.com"
+              class="flex-1 px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-700 text-sm text-white focus:outline-none focus:border-amber-500"
+            />
+            <button
+              id="sendAdminCodeBtn"
+              type="button"
+              class="px-3.5 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-white whitespace-nowrap cursor-pointer"
+            >
+              Send Code
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-stone-300 mb-1"
+            >Verification Code</label
+          >
+          <input
+            id="resetAdminCode"
+            type="text"
+            required
+            placeholder="6-digit code"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-700 text-sm text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-stone-300 mb-1"
+            >New Password</label
+          >
+          <input
+            id="resetNewPassword"
+            type="password"
+            required
+            placeholder="New password (min 6 chars)"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-700 text-sm text-white focus:outline-none focus:border-amber-500"
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition cursor-pointer"
+        >
+          Save New Admin Password
+        </button>
+        <button
+          id="backToLoginBtn"
+          type="button"
+          class="w-full text-xs text-stone-400 hover:text-white pt-1 cursor-pointer"
+        >
+          ← Back to Admin Login
         </button>
       </form>
 
       <div
-        class="mt-6 pt-5 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400"
+        class="pt-4 border-t border-stone-800 flex items-center justify-between text-xs text-stone-400"
       >
-        <span
-          >Default PIN: <strong class="text-stone-200">admin123</strong></span
-        >
+        <span>Zaiqa Admin</span>
         <a href="../index.html" class="text-amber-400 hover:underline"
           >← Back to Storefront</a
         >
@@ -66,20 +143,81 @@
     </div>
 
     <script type="module">
-      import { Store } from "../src/js/store.js";
+      import { Auth } from "../src/js/auth.js";
 
-      const form = document.getElementById("loginForm");
-      const pinInput = document.getElementById("adminPin");
-      const errorEl = document.getElementById("loginError");
+      const loginForm = document.getElementById("adminLoginForm");
+      const resetForm = document.getElementById("adminResetForm");
+      const heading = document.getElementById("adminAuthHeading");
+      const msgBox = document.getElementById("adminMsg");
 
-      form.addEventListener("submit", (e) => {
+      function showMsg(text, ok = false) {
+        msgBox.textContent = text;
+        msgBox.classList.remove(
+          "hidden",
+          "bg-rose-500/15",
+          "text-rose-300",
+          "border-rose-500/30",
+          "bg-emerald-500/15",
+          "text-emerald-300",
+          "border-emerald-500/30",
+        );
+        msgBox.classList.add(
+          "border",
+          ...(ok
+            ? ["bg-emerald-500/15", "text-emerald-300", "border-emerald-500/30"]
+            : ["bg-rose-500/15", "text-rose-300", "border-rose-500/30"]),
+        );
+      }
+
+      document
+        .getElementById("toggleResetBtn")
+        .addEventListener("click", () => {
+          msgBox.classList.add("hidden");
+          loginForm.classList.add("hidden");
+          resetForm.classList.remove("hidden");
+          heading.textContent = "Reset Password";
+        });
+
+      document
+        .getElementById("backToLoginBtn")
+        .addEventListener("click", () => {
+          msgBox.classList.add("hidden");
+          resetForm.classList.add("hidden");
+          loginForm.classList.remove("hidden");
+          heading.textContent = "Staff Login";
+        });
+
+      loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const settings = Store.getSettings();
-        if (pinInput.value.trim() === settings.adminPin) {
-          sessionStorage.setItem("restro_admin_auth", "true");
-          window.location.href = "./dashboard.html";
-        } else {
-          errorEl.classList.remove("hidden");
+        const res = Auth.loginAdmin(
+          document.getElementById("adminEmail").value,
+          document.getElementById("adminPassword").value,
+        );
+        if (!res.ok) return showMsg(res.msg, false);
+        window.location.href = "./dashboard.html";
+      });
+
+      document
+        .getElementById("sendAdminCodeBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("resetAdminEmail").value;
+          const res = await Auth.sendVerificationCode(email, "admin-reset");
+          showMsg(res.msg, res.ok);
+        });
+
+      resetForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const res = Auth.resetAdminPassword(
+          document.getElementById("resetAdminEmail").value,
+          document.getElementById("resetAdminCode").value,
+          document.getElementById("resetNewPassword").value,
+        );
+        showMsg(res.msg, res.ok);
+        if (res.ok) {
+          setTimeout(
+            () => document.getElementById("backToLoginBtn").click(),
+            900,
+          );
         }
       });
     </script>

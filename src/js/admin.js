@@ -1,29 +1,41 @@
 // src/js/admin.js
-import { Store } from './store.js';
+import { Store } from "./store.js";
+import { Store } from "./store.js";
+import { Auth } from "./auth.js";
 
-if (sessionStorage.getItem('restro_admin_auth') !== 'true') {
-  window.location.href = './login.html';
+if (!Auth.isAdminLoggedIn()) {
+  window.location.href = "./login.html";
 }
 
-const STATUSES = ['Pending', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'];
+if (sessionStorage.getItem("restro_admin_auth") !== "true") {
+  window.location.href = "./login.html";
+}
+
+const STATUSES = [
+  "Pending",
+  "Preparing",
+  "Out for Delivery",
+  "Delivered",
+  "Cancelled",
+];
 
 const els = {
-  brandTitle: document.getElementById('adminBrandTitle'),
-  logoutBtn: document.getElementById('logoutBtn'),
-  tabs: document.querySelectorAll('.admin-tab'),
-  panels: document.querySelectorAll('.tab-panel'),
-  pendingBadge: document.getElementById('pendingBadge'),
-  statRevenue: document.getElementById('statRevenue'),
-  statOrders: document.getElementById('statOrders'),
-  statMenuCount: document.getElementById('statMenuCount'),
-  statTopDish: document.getElementById('statTopDish'),
-  recentOrdersList: document.getElementById('recentOrdersList'),
-  addDishForm: document.getElementById('addDishForm'),
-  adminMenuTable: document.getElementById('adminMenuTable'),
-  adminOrdersContainer: document.getElementById('adminOrdersContainer'),
-  settingsForm: document.getElementById('settingsForm'),
-  settingsSavedMsg: document.getElementById('settingsSavedMsg'),
-  resetDemoBtn: document.getElementById('resetDemoBtn'),
+  brandTitle: document.getElementById("adminBrandTitle"),
+  logoutBtn: document.getElementById("logoutBtn"),
+  tabs: document.querySelectorAll(".admin-tab"),
+  panels: document.querySelectorAll(".tab-panel"),
+  pendingBadge: document.getElementById("pendingBadge"),
+  statRevenue: document.getElementById("statRevenue"),
+  statOrders: document.getElementById("statOrders"),
+  statMenuCount: document.getElementById("statMenuCount"),
+  statTopDish: document.getElementById("statTopDish"),
+  recentOrdersList: document.getElementById("recentOrdersList"),
+  addDishForm: document.getElementById("addDishForm"),
+  adminMenuTable: document.getElementById("adminMenuTable"),
+  adminOrdersContainer: document.getElementById("adminOrdersContainer"),
+  settingsForm: document.getElementById("settingsForm"),
+  settingsSavedMsg: document.getElementById("settingsSavedMsg"),
+  resetDemoBtn: document.getElementById("resetDemoBtn"),
 };
 
 function formatPrice(amount) {
@@ -38,11 +50,13 @@ function renderAll() {
   els.brandTitle.textContent = `${settings.restaurantName} — Admin`;
 
   // Pending / Active badge
-  const activeCount = orders.filter((o) => !['Delivered', 'Cancelled'].includes(o.status)).length;
+  const activeCount = orders.filter(
+    (o) => !["Delivered", "Cancelled"].includes(o.status),
+  ).length;
   els.pendingBadge.textContent = activeCount;
 
   // Stats
-  const validOrders = orders.filter((o) => o.status !== 'Cancelled');
+  const validOrders = orders.filter((o) => o.status !== "Cancelled");
   const revenue = validOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
   els.statRevenue.textContent = formatPrice(revenue);
   els.statOrders.textContent = orders.length;
@@ -55,8 +69,12 @@ function renderAll() {
       dishCounts[item.name] = (dishCounts[item.name] || 0) + item.qty;
     });
   });
-  const topDishEntry = Object.entries(dishCounts).sort((a, b) => b[1] - a[1])[0];
-  els.statTopDish.textContent = topDishEntry ? `${topDishEntry[0]} (${topDishEntry[1]})` : 'No orders yet';
+  const topDishEntry = Object.entries(dishCounts).sort(
+    (a, b) => b[1] - a[1],
+  )[0];
+  els.statTopDish.textContent = topDishEntry
+    ? `${topDishEntry[0]} (${topDishEntry[1]})`
+    : "No orders yet";
 
   // Recent orders snapshot
   if (orders.length === 0) {
@@ -76,9 +94,9 @@ function renderAll() {
             <span class="text-xs px-2.5 py-1 rounded-full bg-stone-800 text-stone-200">${o.status}</span>
             <span class="font-semibold text-white">${formatPrice(o.total)}</span>
           </div>
-        </div>`
+        </div>`,
       )
-      .join('');
+      .join("");
   }
 
   // Menu table
@@ -91,7 +109,7 @@ function renderAll() {
             <img src="${item.image}" alt="${item.name}" class="w-11 h-11 rounded-lg object-cover bg-stone-800" />
             <div>
               <p class="font-semibold text-white">${item.name}</p>
-              ${item.featured ? '<span class="text-[11px] text-amber-400">★ Featured</span>' : ''}
+              ${item.featured ? '<span class="text-[11px] text-amber-400">★ Featured</span>' : ""}
             </div>
           </div>
         </td>
@@ -103,11 +121,11 @@ function renderAll() {
             data-toggle-stock="${item.id}"
             class="px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer ${
               item.inStock
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
             }"
           >
-            ${item.inStock ? 'In Stock' : 'Out of Stock'}
+            ${item.inStock ? "In Stock" : "Out of Stock"}
           </button>
         </td>
         <td class="py-3 px-4 text-right">
@@ -118,9 +136,9 @@ function renderAll() {
             Delete
           </button>
         </td>
-      </tr>`
+      </tr>`,
     )
-    .join('');
+    .join("");
 
   // Live orders list
   if (orders.length === 0) {
@@ -147,8 +165,9 @@ function renderAll() {
                 class="px-3 py-2 rounded-xl bg-stone-950 border border-stone-700 text-xs font-semibold text-white focus:border-amber-500 focus:outline-none"
               >
                 ${STATUSES.map(
-                  (st) => `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`
-                ).join('')}
+                  (st) =>
+                    `<option value="${st}" ${order.status === st ? "selected" : ""}>${st}</option>`,
+                ).join("")}
               </select>
             </div>
           </div>
@@ -159,62 +178,62 @@ function renderAll() {
                 (i) => `<div class="flex justify-between text-stone-300">
                   <span>${i.qty}x ${i.name}</span>
                   <span>${formatPrice(i.price * i.qty)}</span>
-                </div>`
+                </div>`,
               )
-              .join('')}
+              .join("")}
             <div class="pt-2 mt-2 border-t border-stone-800 flex justify-between font-bold text-white">
               <span>Total (incl. ${formatPrice(order.deliveryFee)} delivery)</span>
               <span class="text-amber-400">${formatPrice(order.total)}</span>
             </div>
           </div>
-        </div>`
+        </div>`,
       )
-      .join('');
+      .join("");
   }
 
   // Sync settings form values
-  document.getElementById('setBrandName').value = settings.restaurantName;
-  document.getElementById('setWhatsapp').value = settings.whatsappNumber;
-  document.getElementById('setDeliveryFee').value = settings.deliveryFee;
-  document.getElementById('setBaseMins').value = settings.baseDeliveryMins;
+  document.getElementById("setBrandName").value = settings.restaurantName;
+  document.getElementById("setWhatsapp").value = settings.whatsappNumber;
+  document.getElementById("setDeliveryFee").value = settings.deliveryFee;
+  document.getElementById("setBaseMins").value = settings.baseDeliveryMins;
 }
 
 // Tab switching
 els.tabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
+  tab.addEventListener("click", () => {
     const target = tab.dataset.tab;
     els.tabs.forEach((t) => {
-      t.classList.remove('border-amber-500', 'text-amber-400');
-      t.classList.add('border-transparent', 'text-stone-400');
+      t.classList.remove("border-amber-500", "text-amber-400");
+      t.classList.add("border-transparent", "text-stone-400");
     });
-    tab.classList.remove('border-transparent', 'text-stone-400');
-    tab.classList.add('border-amber-500', 'text-amber-400');
+    tab.classList.remove("border-transparent", "text-stone-400");
+    tab.classList.add("border-amber-500", "text-amber-400");
 
     els.panels.forEach((panel) => {
-      panel.classList.toggle('hidden', panel.id !== `tab-${target}`);
+      panel.classList.toggle("hidden", panel.id !== `tab-${target}`);
     });
   });
 });
 
 // Add menu item
-els.addDishForm.addEventListener('submit', (e) => {
+els.addDishForm.addEventListener("submit", (e) => {
   e.preventDefault();
   Store.addMenuItem({
-    name: document.getElementById('dishName').value.trim(),
-    category: document.getElementById('dishCategory').value,
-    price: document.getElementById('dishPrice').value,
-    prepTime: document.getElementById('dishPrep').value,
-    featured: document.getElementById('dishFeatured').checked,
-    image: document.getElementById('dishImage').value.trim(),
-    description: document.getElementById('dishDesc').value.trim(),
+    name: document.getElementById("dishName").value.trim(),
+    category: document.getElementById("dishCategory").value,
+    price: document.getElementById("dishPrice").value,
+    prepTime: document.getElementById("dishPrep").value,
+    featured: document.getElementById("dishFeatured").checked,
+    image: document.getElementById("dishImage").value.trim(),
+    description: document.getElementById("dishDesc").value.trim(),
   });
   els.addDishForm.reset();
   renderAll();
 });
 
 // Stock toggle & delete dish
-els.adminMenuTable.addEventListener('click', (e) => {
-  const toggleBtn = e.target.closest('[data-toggle-stock]');
+els.adminMenuTable.addEventListener("click", (e) => {
+  const toggleBtn = e.target.closest("[data-toggle-stock]");
   if (toggleBtn) {
     const id = toggleBtn.dataset.toggleStock;
     const item = Store.getMenu().find((m) => m.id === id);
@@ -225,7 +244,7 @@ els.adminMenuTable.addEventListener('click', (e) => {
     return;
   }
 
-  const delBtn = e.target.closest('[data-delete-dish]');
+  const delBtn = e.target.closest("[data-delete-dish]");
   if (delBtn) {
     Store.deleteMenuItem(delBtn.dataset.deleteDish);
     renderAll();
@@ -233,8 +252,8 @@ els.adminMenuTable.addEventListener('click', (e) => {
 });
 
 // Order status update
-els.adminOrdersContainer.addEventListener('change', (e) => {
-  const select = e.target.closest('[data-order-status]');
+els.adminOrdersContainer.addEventListener("change", (e) => {
+  const select = e.target.closest("[data-order-status]");
   if (select) {
     Store.updateOrderStatus(select.dataset.orderStatus, select.value);
     renderAll();
@@ -242,33 +261,33 @@ els.adminOrdersContainer.addEventListener('change', (e) => {
 });
 
 // Settings save
-els.settingsForm.addEventListener('submit', (e) => {
+els.settingsForm.addEventListener("submit", (e) => {
   e.preventDefault();
   Store.updateSettings({
-    restaurantName: document.getElementById('setBrandName').value.trim(),
-    whatsappNumber: document.getElementById('setWhatsapp').value.trim(),
-    deliveryFee: Number(document.getElementById('setDeliveryFee').value),
-    baseDeliveryMins: Number(document.getElementById('setBaseMins').value),
+    restaurantName: document.getElementById("setBrandName").value.trim(),
+    whatsappNumber: document.getElementById("setWhatsapp").value.trim(),
+    deliveryFee: Number(document.getElementById("setDeliveryFee").value),
+    baseDeliveryMins: Number(document.getElementById("setBaseMins").value),
   });
-  els.settingsSavedMsg.classList.remove('hidden');
-  setTimeout(() => els.settingsSavedMsg.classList.add('hidden'), 2500);
+  els.settingsSavedMsg.classList.remove("hidden");
+  setTimeout(() => els.settingsSavedMsg.classList.add("hidden"), 2500);
   renderAll();
 });
 
 // Reset demo data
-els.resetDemoBtn.addEventListener('click', () => {
+els.resetDemoBtn.addEventListener("click", () => {
   Store.resetAllData();
   renderAll();
 });
 
 // Logout
-els.logoutBtn.addEventListener('click', () => {
-  sessionStorage.removeItem('restro_admin_auth');
-  window.location.href = './login.html';
+els.logoutBtn.addEventListener("click", () => {
+  Auth.logoutAdmin();
+  window.location.href = "./login.html";
 });
 
 // Live updates across tabs & same tab
-window.addEventListener('storage', renderAll);
-window.addEventListener('restro:updated', renderAll);
+window.addEventListener("storage", renderAll);
+window.addEventListener("restro:updated", renderAll);
 
 renderAll();
