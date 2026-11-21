@@ -6,11 +6,10 @@ const CURRENT_USER_KEY = "restro_current_user_v1";
 const ADMIN_AUTH_KEY = "restro_admin_auth_v1";
 const CODE_KEY = "restro_otp_codes_v1";
 
-// Paste your real EmailJS credentials here
 const EMAILJS_CONFIG = {
-  publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
-  serviceId: "YOUR_EMAILJS_SERVICE_ID",
-  templateId: "YOUR_EMAILJS_TEMPLATE_ID",
+  publicKey: "67ZSdUD-HzRRg5F0h",
+  serviceId: "service_n1481wf",
+  templateId: "template_x7ppzun",
 };
 
 const DEFAULT_ADMIN = {
