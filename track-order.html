@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Your Order | Zaiqa Royal Kitchen</title>
+    <link rel="stylesheet" href="./dist/output.css" />
+  </head>
+  <body class="bg-brand-cream text-stone-900 min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <header
+      class="sticky top-0 z-30 bg-brand-dark/95 backdrop-blur text-stone-100 border-b border-stone-800"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4"
+      >
+        <a
+          href="./index.html"
+          id="trackerBrandName"
+          class="text-xl sm:text-2xl font-bold text-amber-400 tracking-wide truncate"
+        >
+          Zaiqa Royal Kitchen
+        </a>
+
+        <nav class="flex items-center gap-4 sm:gap-6 text-sm font-medium">
+          <a
+            href="./index.html"
+            class="text-stone-300 hover:text-amber-400 transition"
+            >Menu</a
+          >
+          <a href="./track-order.html" class="text-amber-400 font-semibold"
+            >Track Order</a
+          >
+          <a
+            href="./admin/login.html"
+            class="hidden sm:inline text-stone-400 hover:text-white transition"
+            >Admin</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 space-y-8">
+      <div class="text-center space-y-2">
+        <span
+          class="inline-block px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-amber-500/15 text-amber-800 border border-amber-500/30"
+        >
+          Live Delivery & Kitchen Status
+        </span>
+        <h1 class="text-3xl sm:text-4xl font-bold text-stone-900">
+          Track Your Order
+        </h1>
+        <p class="text-sm sm:text-base text-stone-600">
+          Enter your Order ID to view real-time kitchen progress and estimated
+          arrival time.
+        </p>
+      </div>
+
+      <!-- Search Box -->
+      <form
+        id="trackSearchForm"
+        class="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row gap-3"
+      >
+        <input
+          id="trackOrderInput"
+          type="text"
+          required
+          placeholder="Enter Order ID (e.g. ORD-1234)"
+          class="flex-1 px-4 py-3 rounded-xl bg-stone-50 border border-stone-300 text-sm font-medium text-stone-900 uppercase focus:outline-none focus:border-amber-600"
+        />
+        <button
+          type="submit"
+          class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold transition cursor-pointer"
+        >
+          Track Order
+        </button>
+      </form>
+
+      <!-- Active / Searched Order Card -->
+      <section
+        id="orderResultCard"
+        class="hidden bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-8"
+      ></section>
+
+      <!-- Empty / Not Found State -->
+      <div
+        id="orderEmptyState"
+        class="bg-white border border-stone-200 rounded-2xl p-10 text-center space-y-3"
+      >
+        <p id="emptyStateMessage" class="text-stone-600 text-sm sm:text-base">
+          No active order loaded yet. Place an order on the menu or enter an
+          Order ID above.
+        </p>
+        <a
+          href="./index.html"
+          class="inline-block px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-amber-600 text-white text-sm font-semibold transition"
+        >
+          Go to Menu
+        </a>
+      </div>
+
+      <!-- Recent Orders Quick Switcher (for current browser session) -->
+      <section id="recentOrdersSection" class="hidden space-y-3">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-stone-500">
+          Recent Orders on This Device
+        </h2>
+        <div id="recentOrderChips" class="flex flex-wrap gap-2"></div>
+      </section>
+    </main>
+
+    <footer
+      class="bg-brand-dark text-stone-400 border-t border-stone-800 mt-12"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+      >
+        <span id="trackerFooterBrand">Zaiqa Royal Kitchen</span>
+        <a href="./index.html" class="hover:text-amber-400 transition"
+          >← Back to Storefront</a
+        >
+      </div>
+    </footer>
+
+    <script type="module" src="./src/js/user-tracker.js"></script>
+  </body>
+</html>
