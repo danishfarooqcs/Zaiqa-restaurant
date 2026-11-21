@@ -15,9 +15,8 @@ const THEME_KEY = "restro_theme_v1";
 
 let selectedCategory = "All";
 let searchQuery = "";
-// Default to warm editorial light mode (like reference), toggleable to dark mode
 let currentTheme =
-  localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+  localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
 let toastTimer = null;
 
 // null = checkout uses full cart; object = single-item "Order Now" mode
@@ -53,19 +52,22 @@ const els = {
   cartToast: document.getElementById("cartToast"),
   cartToastText: document.getElementById("cartToastText"),
   heroSection: document.getElementById("heroSection"),
-  heroTitle: document.getElementById("heroTitle"),
-  heroDesc: document.getElementById("heroDesc"),
-  heroFloatingCard: document.getElementById("heroFloatingCard"),
   storySection: document.getElementById("story-section"),
+  storyBadgeCard: document.getElementById("storyBadgeCard"),
   storyHeading: document.getElementById("storyHeading"),
   storyBody: document.getElementById("storyBody"),
   featureCard1: document.getElementById("featureCard1"),
   featureCard2: document.getElementById("featureCard2"),
   menuHeading: document.getElementById("menuHeading"),
   menuSubheading: document.getElementById("menuSubheading"),
+  locationSection: document.getElementById("location-section"),
+  locationHeading: document.getElementById("locationHeading"),
+  locationBody: document.getElementById("locationBody"),
+  locationMeta: document.getElementById("locationMeta"),
   mainFooter: document.getElementById("mainFooter"),
   footerBrandTitle: document.getElementById("footerBrandTitle"),
   footerBrandText: document.getElementById("footerBrandText"),
+  footerContactCol: document.getElementById("footerContactCol"),
   activeOrderDot: document.getElementById("activeOrderDot"),
   mobileOrderDot: document.getElementById("mobileOrderDot"),
   mobileOrderBar: document.getElementById("mobileOrderBar"),
@@ -120,6 +122,12 @@ function showCartToast(message) {
   }, 1800);
 }
 
+function pulseCartBadge() {
+  if (!els.cartCountBadge) return;
+  els.cartCountBadge.classList.add("scale-125");
+  setTimeout(() => els.cartCountBadge.classList.remove("scale-125"), 200);
+}
+
 function initScrollReveals() {
   const targets = document.querySelectorAll(".qasr-reveal");
   if (!targets.length) return;
@@ -136,102 +144,114 @@ function initScrollReveals() {
         }
       });
     },
-    { threshold: 0.1 },
+    { threshold: 0.12 },
   );
   targets.forEach((el) => observer.observe(el));
 }
 
-function isDark() {
-  return currentTheme === "dark";
+function isLight() {
+  return currentTheme === "light";
 }
 
 function applyTheme() {
-  const dark = isDark();
+  const light = isLight();
 
-  els.themeIcon.textContent = dark ? "☀️" : "🌙";
-  els.themeLabel.textContent = dark ? "Light" : "Dark";
+  els.themeIcon.textContent = light ? "🌙" : "☀️";
+  els.themeLabel.textContent = light ? "Dark" : "Light";
 
-  els.pageBody.className = dark
-    ? "bg-[#0F0E0D] text-stone-100 min-h-screen flex flex-col transition-colors duration-300"
-    : "bg-[#F7F5F0] text-stone-900 min-h-screen flex flex-col transition-colors duration-300";
+  els.pageBody.className = light
+    ? "bg-[#FAF7F2] text-stone-900 min-h-screen flex flex-col transition-colors duration-300 selection:bg-amber-200"
+    : "bg-[#0F0E0D] text-stone-100 min-h-screen flex flex-col transition-colors duration-300 selection:bg-amber-500/30 selection:text-amber-200";
 
-  els.mainHeader.className = dark
-    ? "sticky top-0 z-30 bg-[#0F0E0D]/95 backdrop-blur-md border-b border-stone-800 transition-colors duration-300"
-    : "sticky top-0 z-30 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-stone-200/90 transition-colors duration-300";
+  els.mainHeader.className = light
+    ? "sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-stone-200 transition-colors duration-300"
+    : "sticky top-0 z-30 bg-[#0F0E0D]/92 backdrop-blur-md border-b border-amber-500/15 transition-colors duration-300";
 
-  els.navBrandName.className = dark
-    ? "font-serif text-base sm:text-xl font-bold text-amber-400 tracking-tight truncate"
-    : "font-serif text-base sm:text-xl font-bold text-stone-900 tracking-tight truncate";
+  els.navBrandName.className = light
+    ? "font-serif text-sm sm:text-xl font-bold text-amber-800 tracking-wide sm:tracking-wider uppercase truncate transition"
+    : "font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition";
 
-  els.desktopNav.className = dark
-    ? "hidden lg:flex items-center gap-7 text-xs font-semibold text-stone-300"
-    : "hidden lg:flex items-center gap-7 text-xs font-semibold text-stone-600";
+  els.navSubtitle.className = light
+    ? "text-[10px] uppercase tracking-[0.24em] text-stone-500 hidden sm:block"
+    : "text-[10px] uppercase tracking-[0.24em] text-stone-400 hidden sm:block";
 
-  els.themeToggleBtn.className = dark
-    ? "px-2.5 sm:px-3 py-2 rounded-full border border-stone-700 bg-stone-900 text-amber-300 text-xs font-semibold flex items-center gap-1.5 qasr-press cursor-pointer"
-    : "px-2.5 sm:px-3 py-2 rounded-full border border-stone-300 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 qasr-press cursor-pointer";
+  els.desktopNav.className = light
+    ? "hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-semibold text-stone-700"
+    : "hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-medium text-stone-300";
 
-  els.navLoginBtn.className = dark
-    ? "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 text-xs font-semibold text-stone-200 bg-stone-900 qasr-press"
-    : "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-300 hover:border-[#1F4E3D] text-xs font-semibold text-stone-800 bg-white qasr-press";
+  els.themeToggleBtn.className = light
+    ? "px-2.5 sm:px-3 py-2 rounded-full border border-stone-300 bg-white hover:bg-stone-100 text-stone-800 text-xs font-semibold flex items-center gap-1.5 qasr-pressable cursor-pointer"
+    : "px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 hover:bg-stone-800 text-amber-300 text-xs font-semibold flex items-center gap-1.5 qasr-pressable cursor-pointer";
 
-  els.navSignupBtn.className = dark
-    ? "hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-800 text-xs font-semibold text-amber-300 qasr-press"
-    : "hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-200/80 hover:bg-stone-300/80 text-xs font-semibold text-stone-900 qasr-press";
+  els.navLoginBtn.className = light
+    ? "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-300 hover:border-amber-700 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-800 bg-white qasr-pressable"
+    : "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 qasr-pressable";
 
-  els.mobileSubBar.className = dark
-    ? "sm:hidden border-t border-stone-800 bg-[#141210] px-3 py-2 flex items-center justify-between text-[11px] text-stone-300"
-    : "sm:hidden border-t border-stone-200 bg-[#F1EEE7] px-3 py-2 flex items-center justify-between text-[11px] text-stone-700";
+  els.navSignupBtn.className = light
+    ? "hidden sm:inline-block px-3.5 py-2 rounded-full bg-amber-700 hover:bg-amber-600 text-xs uppercase tracking-wider font-semibold text-white qasr-pressable"
+    : "hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 qasr-pressable";
 
-  els.heroSection.className = dark
-    ? "bg-[#141210] border-b border-stone-800 py-10 sm:py-16 transition-colors duration-300"
-    : "bg-[#F7F5F0] border-b border-stone-200/80 py-10 sm:py-16 transition-colors duration-300";
+  els.mobileSubBar.className = light
+    ? "sm:hidden border-t border-stone-200 bg-[#F4EFE6] px-3 py-2 flex items-center justify-between text-[11px] text-stone-700"
+    : "sm:hidden border-t border-stone-800/70 px-3 py-2 flex items-center justify-between text-[11px] text-stone-300";
 
-  els.heroTitle.className = dark
-    ? "font-serif text-4xl sm:text-6xl font-bold leading-[1.08] tracking-tight text-white"
-    : "font-serif text-4xl sm:text-6xl font-bold leading-[1.08] tracking-tight text-stone-900";
+  els.mobileSignupLink.className = light
+    ? "text-amber-800 font-bold"
+    : "text-amber-400 font-semibold";
 
-  els.heroDesc.className = dark
-    ? "text-stone-300 text-sm sm:text-base leading-relaxed max-w-xl"
-    : "text-stone-600 text-sm sm:text-base leading-relaxed max-w-xl";
+  els.storySection.className = light
+    ? "py-16 sm:py-20 bg-white border-b border-stone-200 transition-colors duration-300"
+    : "py-16 sm:py-20 bg-[#141210] border-b border-amber-500/10 transition-colors duration-300";
 
-  els.heroFloatingCard.className = dark
-    ? "hidden sm:flex items-center gap-3 bg-stone-900 border border-stone-700 rounded-2xl px-4 py-3 shadow-xl absolute -bottom-4 left-6"
-    : "hidden sm:flex items-center gap-3 bg-white border border-stone-200 rounded-2xl px-4 py-3 shadow-xl absolute -bottom-4 left-6";
+  els.storyBadgeCard.className = light
+    ? "hidden sm:block absolute -bottom-6 -right-6 bg-[#FAF7F2] border border-stone-200 rounded-2xl p-5 shadow-xl max-w-[220px]"
+    : "hidden sm:block absolute -bottom-6 -right-6 bg-[#1B1815] border border-amber-500/30 rounded-2xl p-5 shadow-xl max-w-[220px]";
 
-  els.menuHeading.className = dark
-    ? "font-serif text-3xl sm:text-4xl font-bold text-white"
-    : "font-serif text-3xl sm:text-4xl font-bold text-stone-900";
+  els.storyHeading.className = light
+    ? "font-serif text-2xl sm:text-5xl font-bold text-stone-900 leading-tight"
+    : "font-serif text-2xl sm:text-5xl font-bold text-white leading-tight";
 
-  els.menuSubheading.className = dark
-    ? "text-xs sm:text-sm text-stone-400"
-    : "text-xs sm:text-sm text-stone-600";
+  els.storyBody.className = light
+    ? "text-stone-600 text-sm sm:text-base leading-relaxed"
+    : "text-stone-300 text-sm sm:text-base leading-relaxed";
 
-  els.menuSearchInput.className = dark
-    ? "w-full px-4 py-2 rounded-full bg-stone-900 border border-stone-700 text-xs sm:text-sm text-white placeholder-stone-500 focus:outline-none focus:border-emerald-500 transition"
-    : "w-full px-4 py-2 rounded-full bg-white border border-stone-300 text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#1F4E3D] transition";
+  const cardSurface = light
+    ? "p-4 sm:p-5 rounded-2xl bg-[#FAF7F2] border border-stone-200 hover:-translate-y-0.5 transition duration-300"
+    : "p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300";
+  els.featureCard1.className = cardSurface;
+  els.featureCard2.className = cardSurface;
 
-  els.storySection.className = dark
-    ? "bg-[#141210] border-t border-stone-800 py-14 sm:py-16 transition-colors duration-300"
-    : "bg-white border-t border-stone-200 py-14 sm:py-16 transition-colors duration-300";
+  els.menuHeading.className = light
+    ? "font-serif text-3xl sm:text-5xl font-bold text-stone-900"
+    : "font-serif text-3xl sm:text-5xl font-bold text-white";
 
-  els.storyHeading.className = dark
-    ? "font-serif text-2xl sm:text-4xl font-bold text-white"
-    : "font-serif text-2xl sm:text-4xl font-bold text-stone-900";
+  els.menuSubheading.className = light
+    ? "text-xs sm:text-sm text-stone-600"
+    : "text-xs sm:text-sm text-stone-400";
 
-  els.storyBody.className = dark
-    ? "text-stone-300 text-xs sm:text-sm leading-relaxed"
-    : "text-stone-600 text-xs sm:text-sm leading-relaxed";
+  els.menuSearchInput.className = light
+    ? "w-full px-4 py-2.5 rounded-full bg-white border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 transition"
+    : "w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition";
 
-  const infoCard = dark
-    ? "p-4 rounded-2xl bg-stone-900 border border-stone-800"
-    : "p-4 rounded-2xl bg-[#F7F5F0] border border-stone-200/80";
-  els.featureCard1.className = infoCard;
-  els.featureCard2.className = infoCard;
+  els.locationSection.className = light
+    ? "bg-white border-t border-stone-200 py-16 sm:py-20 transition-colors duration-300"
+    : "bg-[#141210] border-t border-amber-500/15 py-16 sm:py-20 transition-colors duration-300";
 
-  els.mainFooter.className = dark
-    ? "bg-[#0A0908] text-stone-400 border-t border-stone-800 pb-20 sm:pb-0 transition-colors duration-300"
-    : "bg-[#EFECE4] text-stone-700 border-t border-stone-300/80 pb-20 sm:pb-0 transition-colors duration-300";
+  els.locationHeading.className = light
+    ? "font-serif text-2xl sm:text-4xl font-bold text-stone-900"
+    : "font-serif text-2xl sm:text-4xl font-bold text-white";
+
+  els.locationBody.className = light
+    ? "text-stone-600 text-xs sm:text-sm leading-relaxed"
+    : "text-stone-300 text-xs sm:text-sm leading-relaxed";
+
+  els.locationMeta.className = light
+    ? "pt-2 space-y-1.5 text-xs text-stone-500 border-t border-stone-200"
+    : "pt-2 space-y-1.5 text-xs text-stone-400 border-t border-stone-800";
+
+  els.mainFooter.className = light
+    ? "bg-[#EFEAE0] text-stone-700 border-t border-stone-300 pb-20 sm:pb-0 transition-colors duration-300"
+    : "bg-[#0A0908] text-stone-400 border-t border-amber-500/15 pb-20 sm:pb-0 transition-colors duration-300";
 }
 
 function formatPrice(amount) {
@@ -362,7 +382,7 @@ function renderProfileDrawer() {
 
   const myOrders = Store.getOrdersByUserEmail(user.email);
   if (myOrders.length === 0) {
-    els.userOrdersList.innerHTML = `<p class="text-xs text-stone-500 bg-[#F7F5F0] border border-stone-200 rounded-xl p-4">No orders placed under this account yet.</p>`;
+    els.userOrdersList.innerHTML = `<p class="text-xs text-stone-500 bg-stone-50 border border-stone-200 rounded-xl p-4">No orders placed under this account yet.</p>`;
     return;
   }
 
@@ -371,13 +391,13 @@ function renderProfileDrawer() {
       (o) => `
       <div class="border border-stone-200 rounded-xl p-3.5 space-y-2 text-xs">
         <div class="flex items-center justify-between">
-          <span class="font-bold text-[#1F4E3D]">#${o.orderId}</span>
+          <span class="font-bold text-amber-700">#${o.orderId}</span>
           <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-semibold">${o.status}</span>
         </div>
         <p class="text-stone-600">${o.items.map((i) => `${i.qty}x ${i.name}`).join(", ")}</p>
         <div class="flex items-center justify-between pt-1 border-t border-stone-100">
           <span class="font-bold text-stone-900">${formatPrice(o.total)}</span>
-          <a href="./track-order.html?id=${encodeURIComponent(o.orderId)}" class="text-[#1F4E3D] font-semibold hover:underline">
+          <a href="./track-order.html?id=${encodeURIComponent(o.orderId)}" class="text-amber-700 font-semibold hover:underline">
             Track Live →
           </a>
         </div>
@@ -391,7 +411,7 @@ function renderBrand() {
   document.title = `${settings.restaurantName} | Fine Dining & Online Ordering`;
   els.navBrandName.textContent = settings.restaurantName;
   els.footerBrandTitle.textContent = settings.restaurantName;
-  els.footerBrandText.textContent = `Serving signature grills, slow-simmered karahis, and fragrant biryanis in Gulgasht Colony, Multan, Punjab, Pakistan.`;
+  els.footerBrandText.textContent = `Serving signature grills, slow-simmered karahis, and fragrant biryanis from Gulgasht Colony, Multan, Punjab, Pakistan.`;
 
   const lastOrderId = localStorage.getItem("restro_last_order_id");
   const lastOrder = lastOrderId ? Store.getOrderById(lastOrderId) : null;
@@ -430,16 +450,16 @@ function renderBrand() {
 }
 
 function renderCategories() {
-  const dark = isDark();
+  const light = isLight();
   els.categoryFilters.innerHTML = CATEGORIES.map((cat) => {
     const active = selectedCategory === cat;
-    const inactiveClass = dark
-      ? "bg-stone-900 text-stone-300 border border-stone-800 hover:border-stone-600"
-      : "bg-white text-stone-700 border border-stone-200 hover:border-[#1F4E3D] hover:text-[#1F4E3D]";
+    const inactiveClass = light
+      ? "bg-white text-stone-700 border border-stone-300 hover:border-amber-700 hover:text-amber-800"
+      : "bg-[#181614] text-stone-300 border border-stone-800 hover:border-amber-500/50 hover:text-amber-300";
     return `
       <button type="button" data-category="${cat}"
-        class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 qasr-press cursor-pointer ${
-          active ? "bg-[#1F4E3D] text-white shadow-xs" : inactiveClass
+        class="px-4 sm:px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold whitespace-nowrap shrink-0 qasr-pressable cursor-pointer ${
+          active ? "bg-amber-500 text-stone-950 shadow-md" : inactiveClass
         }">
         ${cat}
       </button>
@@ -448,7 +468,7 @@ function renderCategories() {
 }
 
 function renderMenu() {
-  const dark = isDark();
+  const light = isLight();
   const allItems = Store.getMenu();
   const filtered = allItems.filter((item) => {
     const matchesCat =
@@ -464,7 +484,7 @@ function renderMenu() {
 
   if (filtered.length === 0) {
     els.menuGrid.innerHTML = `
-      <div class="col-span-full ${dark ? "bg-stone-900 border-stone-800 text-stone-400" : "bg-white border-stone-200 text-stone-500"} border rounded-2xl p-12 text-center qasr-card-in">
+      <div class="col-span-full ${light ? "bg-white border-stone-200 text-stone-500" : "bg-[#181614] border-stone-800 text-stone-400"} border rounded-2xl p-12 text-center qasr-card-animate">
         No dishes found matching your selection.
       </div>
     `;
@@ -476,80 +496,78 @@ function renderMenu() {
       const available = Boolean(item.inStock);
       const off = Number(item.offPercent || 0);
       const finalPrice = getEffectivePrice(item);
-      const delay = Math.min(idx * 45, 320);
+      const staggerDelay = Math.min(idx * 60, 360);
 
-      const cardClasses = dark
-        ? "qasr-card-in group bg-stone-900 border border-stone-800 hover:border-stone-700 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition flex flex-col"
-        : "qasr-card-in group bg-white border border-stone-200/90 hover:border-stone-300 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col";
+      const cardClasses = light
+        ? "qasr-card-animate group bg-white border border-stone-200 hover:border-amber-600/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col"
+        : "qasr-card-animate group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col";
 
-      const titleClasses = dark
-        ? "font-serif text-base font-bold text-white leading-snug"
-        : "font-serif text-base font-bold text-stone-900 leading-snug";
+      const titleClasses = light
+        ? "font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug group-hover:text-amber-800 transition"
+        : "font-serif text-lg sm:text-xl font-bold text-white leading-snug group-hover:text-amber-300 transition";
 
-      const priceClasses = dark
-        ? "text-sm font-bold text-amber-400"
-        : "text-sm font-bold text-stone-900";
+      const priceClasses = light
+        ? "text-base font-bold text-amber-800"
+        : "text-base font-bold text-amber-400";
 
-      const descClasses = dark
-        ? "text-xs text-stone-400 mt-1 line-clamp-2 leading-relaxed"
-        : "text-xs text-stone-500 mt-1 line-clamp-2 leading-relaxed";
+      const descClasses = light
+        ? "text-xs sm:text-sm text-stone-600 mt-1.5 line-clamp-2 leading-relaxed"
+        : "text-xs sm:text-sm text-stone-400 mt-1.5 line-clamp-2 leading-relaxed";
 
       const addBtnClasses = available
-        ? dark
-          ? "flex-1 py-2 px-2.5 rounded-lg text-[11px] font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 qasr-press cursor-pointer"
-          : "flex-1 py-2 px-2.5 rounded-lg text-[11px] font-semibold bg-[#F7F5F0] hover:bg-stone-200/80 text-stone-800 border border-stone-200 qasr-press cursor-pointer"
-        : "flex-1 py-2 px-2.5 rounded-lg text-[11px] font-semibold bg-stone-200/50 text-stone-400 cursor-not-allowed";
+        ? light
+          ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 qasr-pressable cursor-pointer"
+          : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 qasr-pressable cursor-pointer"
+        : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
 
       const orderNowClasses = available
-        ? "flex-1 py-2 px-2.5 rounded-lg text-[11px] font-semibold bg-[#1F4E3D] hover:bg-[#163B2E] text-white qasr-press cursor-pointer"
-        : "flex-1 py-2 px-2.5 rounded-lg text-[11px] font-semibold bg-stone-200/50 text-stone-400 cursor-not-allowed";
-
-      const badgeLabel = !available
-        ? "Sold Out"
-        : off > 0
-          ? `${off}% OFF`
-          : item.featured
-            ? "Bestseller"
-            : item.category;
+        ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-amber-500 hover:bg-amber-400 text-stone-950 qasr-pressable cursor-pointer"
+        : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
 
       return `
-        <article class="${cardClasses}" style="animation-delay: ${delay}ms;">
-          <div class="relative h-44 bg-stone-100 overflow-hidden">
+        <article class="${cardClasses}" style="animation-delay: ${staggerDelay}ms;">
+          <div class="relative h-48 sm:h-56 bg-stone-900 overflow-hidden">
             <img src="${item.image}" alt="${item.name}" loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-104 transition duration-500 ${available ? "" : "grayscale opacity-50"}" />
-            <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/95 text-stone-800 shadow-xs">
-              ${badgeLabel}
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 ${available ? "" : "grayscale opacity-50"}" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/25"></div>
+            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold bg-black/75 text-amber-300 border border-amber-500/20">
+              ${item.category}
             </span>
+            ${
+              off > 0 && available
+                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-600 text-white shadow">${off}% OFF</span>`
+                : ""
+            }
+            ${
+              !available
+                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-rose-600 text-white">Sold Out</span>`
+                : `<span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-medium bg-black/75 text-stone-200">~${item.prepTime}m${item.spiceLevel ? ` • ${item.spiceLevel}` : ""}</span>`
+            }
           </div>
 
-          <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+          <div class="p-5 sm:p-6 flex-1 flex flex-col justify-between gap-4">
             <div>
-              <p class="text-[10px] font-bold uppercase tracking-wider text-[#C86428]">${item.category}</p>
-              <h3 class="${titleClasses} mt-0.5">${item.name}</h3>
-              <p class="${descClasses}">${item.description}</p>
-            </div>
-
-            <div class="space-y-2.5 pt-1">
-              <div class="flex items-center justify-between text-xs">
-                <div>
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="${titleClasses}">${item.name}</h3>
+                <div class="text-right whitespace-nowrap">
                   <span class="${priceClasses}">${formatPrice(finalPrice)}</span>
                   ${
                     off > 0
-                      ? `<span class="text-[11px] line-through text-stone-400 ml-1">${formatPrice(item.price)}</span>`
+                      ? `<span class="block text-xs line-through text-stone-400">${formatPrice(item.price)}</span>`
                       : ""
                   }
                 </div>
-                <span class="text-[11px] text-stone-500">${item.prepTime}m${item.spiceLevel ? ` • ${item.spiceLevel}` : ""}</span>
               </div>
+              <p class="${descClasses}">${item.description}</p>
+            </div>
 
-              <div class="flex items-center gap-2">
-                <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"} class="${addBtnClasses}">
-                  ${available ? "+ Add to bag" : "Sold out"}
-                </button>
-                <button type="button" data-order-now="${item.id}" ${available ? "" : "disabled"} class="${orderNowClasses}">
-                  ${available ? "Order Now" : "Unavailable"}
-                </button>
-              </div>
+            <div class="flex items-center gap-2">
+              <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"} class="${addBtnClasses}">
+                ${available ? "+ Add to Cart" : "Unavailable"}
+              </button>
+              <button type="button" data-order-now="${item.id}" ${available ? "" : "disabled"} class="${orderNowClasses}">
+                ${available ? "Order Now" : "Sold Out"}
+              </button>
             </div>
           </div>
         </article>
@@ -597,7 +615,7 @@ function renderDrawer() {
   if (activeSummary.items.length === 0) {
     els.cartItemsContainer.innerHTML = `
       <div class="py-8 text-center text-stone-500 text-sm">
-        Your bag is empty. Pick a dish from the menu to get started.
+        Your cart is empty. Pick a dish from the menu to get started.
       </div>
     `;
     return;
@@ -617,10 +635,10 @@ function renderDrawer() {
 
         <div class="flex items-center gap-2 shrink-0">
           <button type="button" data-qty-delta="-1" data-item-id="${item.id}"
-            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm qasr-press cursor-pointer">−</button>
+            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm qasr-pressable cursor-pointer">−</button>
           <span class="w-5 text-center text-sm font-semibold">${item.qty}</span>
           <button type="button" data-qty-delta="1" data-item-id="${item.id}"
-            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm qasr-press cursor-pointer">+</button>
+            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm qasr-pressable cursor-pointer">+</button>
         </div>
       </div>
     `,
@@ -660,7 +678,7 @@ function closeProfile() {
 }
 
 els.themeToggleBtn.addEventListener("click", () => {
-  currentTheme = isDark() ? "light" : "dark";
+  currentTheme = isLight() ? "dark" : "light";
   localStorage.setItem(THEME_KEY, currentTheme);
   applyTheme();
   renderCategories();
@@ -739,7 +757,8 @@ els.menuGrid.addEventListener("click", (e) => {
     if (added) {
       directOrderItem = null;
       renderDrawer();
-      showCartToast(`Added "${product ? product.name : "dish"}" to bag`);
+      pulseCartBadge();
+      showCartToast(`Added "${product ? product.name : "dish"}" to cart`);
     }
     return;
   }

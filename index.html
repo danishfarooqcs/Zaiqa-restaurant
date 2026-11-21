@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./dist/output.css" />
@@ -17,10 +17,10 @@
     />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-      @keyframes qasrFadeUp {
+      @keyframes qasrHeroFadeUp {
         from {
           opacity: 0;
-          transform: translateY(14px);
+          transform: translateY(18px);
         }
         to {
           opacity: 1;
@@ -28,56 +28,85 @@
         }
       }
 
-      .qasr-hero-enter > * {
+      @keyframes qasrCardEnter {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes qasrCrestPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.22);
+        }
+        50% {
+          box-shadow: 0 0 0 7px rgba(245, 158, 11, 0);
+        }
+      }
+
+      .qasr-hero-stagger > * {
         opacity: 0;
-        animation: qasrFadeUp 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        animation: qasrHeroFadeUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
-      .qasr-hero-enter > *:nth-child(1) {
-        animation-delay: 0.05s;
+      .qasr-hero-stagger > *:nth-child(1) {
+        animation-delay: 0.06s;
       }
-      .qasr-hero-enter > *:nth-child(2) {
-        animation-delay: 0.14s;
+      .qasr-hero-stagger > *:nth-child(2) {
+        animation-delay: 0.16s;
       }
-      .qasr-hero-enter > *:nth-child(3) {
-        animation-delay: 0.22s;
+      .qasr-hero-stagger > *:nth-child(3) {
+        animation-delay: 0.26s;
       }
-      .qasr-hero-enter > *:nth-child(4) {
-        animation-delay: 0.3s;
+      .qasr-hero-stagger > *:nth-child(4) {
+        animation-delay: 0.36s;
+      }
+      .qasr-hero-stagger > *:nth-child(5) {
+        animation-delay: 0.46s;
       }
 
       .qasr-reveal {
         opacity: 0;
-        transform: translateY(18px);
+        transform: translateY(22px);
         transition:
-          opacity 0.6s ease,
-          transform 0.6s ease;
+          opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
       }
       .qasr-reveal.is-visible {
         opacity: 1;
         transform: translateY(0);
       }
 
-      .qasr-card-in {
+      .qasr-card-animate {
         opacity: 0;
-        animation: qasrFadeUp 0.45s ease forwards;
+        animation: qasrCardEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
 
-      .qasr-press {
+      .qasr-crest-glow {
+        animation: qasrCrestPulse 3.4s ease-in-out infinite;
+      }
+
+      .qasr-pressable {
         transition:
-          transform 0.16s ease,
+          transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
           background-color 0.2s ease,
           border-color 0.2s ease,
-          box-shadow 0.2s ease;
+          box-shadow 0.25s ease;
       }
-      .qasr-press:active:not(:disabled) {
+      .qasr-pressable:active:not(:disabled) {
         transform: scale(0.96);
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .qasr-hero-enter > *,
+        .qasr-hero-stagger > *,
         .qasr-reveal,
-        .qasr-card-in,
-        .qasr-press {
+        .qasr-card-animate,
+        .qasr-crest-glow,
+        .qasr-pressable {
           animation: none !important;
           transition: none !important;
           opacity: 1 !important;
@@ -88,9 +117,9 @@
   </head>
   <body
     id="pageBody"
-    class="bg-[#F7F5F0] text-stone-900 min-h-screen flex flex-col transition-colors duration-300"
+    class="bg-[#0F0E0D] text-stone-100 min-h-screen flex flex-col transition-colors duration-300 selection:bg-amber-500/30 selection:text-amber-200"
   >
-    <!-- Brand Crest Logo SVG -->
+    <!-- Reusable Brand Logo SVG Definition -->
     <svg class="hidden" aria-hidden="true">
       <symbol id="qasr-crest-logo" viewBox="0 0 64 64">
         <circle
@@ -130,34 +159,24 @@
       </symbol>
     </svg>
 
-    <!-- Top Announcement Strip -->
-    <div
-      id="topPromoBar"
-      class="bg-[#1F4E3D] text-emerald-50 text-[11px] sm:text-xs py-2 px-4 text-center font-medium"
-    >
-      <span>Freshly prepared in Gulgasht Colony, Multan • </span>
-      <span class="font-bold text-amber-300">Flat 5% Delivery Fee</span>
-      <span class="hidden sm:inline"> • Open Daily 12 PM – 1 AM</span>
-    </div>
-
-    <!-- Sticky Header -->
+    <!-- Sticky Navigation with Logo + Real Dark / Light Switch -->
     <header
       id="mainHeader"
-      class="sticky top-0 z-30 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-stone-200/90 transition-colors duration-300"
+      class="sticky top-0 z-30 bg-[#0F0E0D]/92 backdrop-blur-md border-b border-amber-500/15 transition-colors duration-300"
     >
       <div
         class="max-w-7xl mx-auto px-3 sm:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4"
       >
-        <!-- LEFT: Profile + Logo + Brand -->
-        <div class="flex items-center gap-2.5 min-w-0">
+        <!-- LEFT: User Profile Icon + Brand Logo + Name -->
+        <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
           <button
             id="userProfileBtn"
             type="button"
             title="My Profile & Orders"
-            class="hidden items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-white border border-stone-300 text-xs font-semibold text-stone-800 qasr-press cursor-pointer shrink-0"
+            class="hidden items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-stone-900 border border-amber-500/30 text-xs font-semibold text-amber-300 qasr-pressable cursor-pointer shrink-0"
           >
             <span
-              class="w-6 h-6 rounded-full bg-[#1F4E3D] text-white flex items-center justify-center font-bold text-xs"
+              class="w-6 h-6 rounded-full bg-amber-600 text-stone-950 flex items-center justify-center font-bold text-xs"
               id="userAvatarInitial"
               >U</span
             >
@@ -174,20 +193,20 @@
           >
             <span
               id="navLogoBadge"
-              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#1F4E3D]/10 border border-[#1F4E3D]/30 text-[#1F4E3D] flex items-center justify-center shrink-0 group-hover:scale-105 transition"
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0 qasr-crest-glow group-hover:scale-105 transition duration-300"
             >
               <svg class="w-6 h-6"><use href="#qasr-crest-logo"></use></svg>
             </span>
             <span class="flex flex-col min-w-0">
               <span
                 id="navBrandName"
-                class="font-serif text-base sm:text-xl font-bold text-stone-900 tracking-tight truncate"
+                class="font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition"
               >
                 Qasr-e-Dastarkhwan
               </span>
               <span
                 id="navSubtitle"
-                class="text-[10px] uppercase tracking-[0.2em] text-stone-500 hidden sm:block"
+                class="text-[10px] uppercase tracking-[0.24em] text-stone-400 hidden sm:block"
               >
                 Gulgasht Colony • Multan
               </span>
@@ -195,49 +214,48 @@
           </a>
         </div>
 
-        <!-- CENTER NAV -->
+        <!-- DESKTOP NAV LINKS -->
         <nav
           id="desktopNav"
-          class="hidden lg:flex items-center gap-7 text-xs font-semibold text-stone-600"
+          class="hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-medium text-stone-300"
         >
-          <a href="#heroSection" class="hover:text-[#1F4E3D] transition"
-            >Home</a
+          <a href="#story-section" class="hover:text-amber-400 transition"
+            >Story</a
           >
-          <a href="#menu-section" class="hover:text-[#1F4E3D] transition"
+          <a href="#menu-section" class="hover:text-amber-400 transition"
             >Menu</a
           >
-          <a href="#story-section" class="hover:text-[#1F4E3D] transition"
-            >Story</a
+          <a href="#location-section" class="hover:text-amber-400 transition"
+            >Location</a
           >
           <a
             href="./track-order.html"
-            class="flex items-center gap-1.5 hover:text-[#1F4E3D] transition"
+            class="flex items-center gap-1.5 hover:text-amber-400 transition"
           >
-            <span>Track Order</span>
+            <span>Track</span>
             <span
               id="activeOrderDot"
-              class="w-2 h-2 rounded-full bg-emerald-500 hidden"
+              class="w-2 h-2 rounded-full bg-emerald-400 animate-ping hidden"
             ></span>
           </a>
-          <a href="./admin/login.html" class="hover:text-[#1F4E3D] transition"
-            >Admin</a
-          >
         </nav>
 
-        <!-- RIGHT CONTROLS -->
+        <!-- RIGHT CONTROLS: Theme Switch + Separated Login/Sign Up + Cart -->
         <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           <button
             id="themeToggleBtn"
             type="button"
             aria-label="Switch Dark or Light Theme"
             title="Switch Dark / Light Theme"
-            class="px-2.5 sm:px-3 py-2 rounded-full border border-stone-300 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 qasr-press cursor-pointer"
+            class="px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 text-amber-300 text-xs font-semibold flex items-center gap-1.5 qasr-pressable cursor-pointer"
           >
-            <span id="themeIcon">🌙</span>
+            <span id="themeIcon" class="transition-transform duration-300"
+              >☀️</span
+            >
             <span
               id="themeLabel"
-              class="hidden sm:inline text-[11px] font-semibold"
-              >Dark</span
+              class="hidden sm:inline text-[11px] uppercase tracking-wider"
+              >Light</span
             >
           </button>
 
@@ -245,63 +263,71 @@
             <a
               href="./auth.html?mode=login"
               id="navLoginBtn"
-              class="px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-300 hover:border-[#1F4E3D] text-xs font-semibold text-stone-800 bg-white qasr-press"
+              class="px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 qasr-pressable"
             >
-              Sign in
+              Login
             </a>
             <a
               href="./auth.html?mode=signup"
               id="navSignupBtn"
-              class="hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-200/80 hover:bg-stone-300/80 text-xs font-semibold text-stone-900 qasr-press"
+              class="hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 qasr-pressable"
             >
-              Sign up
+              Sign Up
             </a>
           </div>
+
+          <a
+            href="./admin/login.html"
+            id="navAdminLink"
+            class="hidden xl:inline text-[11px] uppercase tracking-widest text-stone-500 hover:text-stone-300 transition"
+          >
+            Staff
+          </a>
 
           <button
             id="openCartBtn"
             type="button"
-            class="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#1F4E3D] hover:bg-[#163B2E] text-white text-xs font-semibold flex items-center gap-1.5 sm:gap-2 shadow-sm qasr-press cursor-pointer"
+            class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs uppercase tracking-wider font-bold flex items-center gap-1.5 sm:gap-2 shadow-lg qasr-pressable cursor-pointer"
           >
-            <span>Bag</span>
+            <span>Cart</span>
             <span
               id="cartCountBadge"
-              class="px-1.5 py-0.5 text-[11px] rounded-full bg-amber-400 text-stone-950 font-bold"
+              class="px-1.5 sm:px-2 py-0.5 text-[11px] rounded-full bg-stone-950 text-amber-300 font-bold transition-transform duration-200"
               >0</span
             >
           </button>
         </div>
       </div>
 
-      <!-- Mobile Sub-Bar -->
+      <!-- Mobile Quick Sub-Bar -->
       <div
         id="mobileSubBar"
-        class="sm:hidden border-t border-stone-200 bg-[#F1EEE7] px-3 py-2 flex items-center justify-between text-[11px] text-stone-700"
+        class="sm:hidden border-t border-stone-800/70 px-3 py-2 flex items-center justify-between text-[11px] text-stone-300"
       >
         <div class="flex items-center gap-4">
-          <a href="#menu-section" class="hover:text-[#1F4E3D] font-semibold"
+          <a href="#menu-section" class="hover:text-amber-400 font-medium"
             >Menu</a
           >
           <a
             href="./track-order.html"
-            class="flex items-center gap-1 hover:text-[#1F4E3D] font-medium"
+            class="flex items-center gap-1 hover:text-amber-400 font-medium"
           >
-            <span>Track</span>
+            <span>Track Order</span>
             <span
               id="mobileOrderDot"
-              class="w-1.5 h-1.5 rounded-full bg-emerald-500 hidden"
+              class="w-1.5 h-1.5 rounded-full bg-emerald-400 hidden"
             ></span>
           </a>
           <a
             href="./admin/login.html"
-            class="text-stone-500 hover:text-[#1F4E3D]"
+            class="text-stone-400 hover:text-amber-400"
             >Admin</a
           >
         </div>
         <a
           href="./auth.html?mode=signup"
           id="mobileSignupLink"
-          class="text-[#1F4E3D] font-bold"
+          class="text-amber-400 font-semibold"
         >
           Create Account →
         </a>
@@ -314,100 +340,117 @@
       class="fixed top-20 sm:top-24 right-4 sm:right-8 z-40 pointer-events-none opacity-0 -translate-y-2 transition-all duration-300"
     >
       <div
-        class="px-4 py-2.5 rounded-full bg-[#1F4E3D] text-white shadow-xl text-xs font-semibold flex items-center gap-2"
+        class="px-4 py-2.5 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 shadow-2xl text-xs font-semibold flex items-center gap-2"
       >
-        <span class="w-2 h-2 rounded-full bg-amber-300"></span>
-        <span id="cartToastText">Added to bag</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="cartToastText">Added to cart</span>
       </div>
     </div>
 
-    <!-- Split Editorial Hero (Inspired by FoodieHub Layout) -->
+    <!-- Editorial Fine-Dining Hero -->
     <section
       id="heroSection"
-      class="bg-[#F7F5F0] border-b border-stone-200/80 py-10 sm:py-16 transition-colors duration-300"
+      class="relative min-h-[72vh] sm:min-h-[82vh] flex items-center overflow-hidden border-b border-amber-500/15 bg-[#0F0E0D] text-white"
     >
+      <img
+        src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=1800&q=85"
+        alt="Fine dining table setting and signature culinary craft"
+        class="absolute inset-0 w-full h-full object-cover scale-105 opacity-40 transition-transform duration-1000"
+      />
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center"
+        class="absolute inset-0 bg-gradient-to-r from-[#0F0E0D] via-[#0F0E0D]/80 to-[#0F0E0D]/35"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-[#0F0E0D] via-transparent to-[#0F0E0D]/50"
+      ></div>
+
+      <div
+        class="relative max-w-7xl mx-auto px-4 sm:px-8 py-16 sm:py-24 w-full"
       >
-        <div class="lg:col-span-6 space-y-5 qasr-hero-enter">
-          <p
-            class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#1F4E3D] flex items-center gap-2"
-          >
-            <span class="w-5 h-px bg-[#1F4E3D]"></span>
-            <span>Fresh Food, Right Around The Corner</span>
-          </p>
+        <div class="max-w-2xl space-y-5 sm:space-y-6 qasr-hero-stagger">
+          <div class="inline-flex items-center gap-2.5">
+            <span
+              class="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center"
+            >
+              <svg class="w-4 h-4"><use href="#qasr-crest-logo"></use></svg>
+            </span>
+            <span
+              class="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.25em] sm:tracking-[0.3em] text-amber-400"
+            >
+              Gulgasht Colony • Multan
+            </span>
+          </div>
 
           <h1
             id="heroTitle"
-            class="font-serif text-4xl sm:text-6xl font-bold leading-[1.08] tracking-tight text-stone-900"
+            class="font-serif text-3xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight"
           >
-            Good food.<br />
-            Good mood.<br />
-            <span id="heroAccentLine" class="text-[#C86428]"
-              >Your next favourite is closer.</span
-            >
+            An Elevated Taste of Royal Hospitality
           </h1>
 
           <p
             id="heroDesc"
-            class="text-stone-600 text-sm sm:text-base leading-relaxed max-w-xl"
+            class="text-stone-300 text-sm sm:text-lg leading-relaxed max-w-xl"
           >
-            Thoughtful plates from our Gulgasht Colony kitchen in Multan,
-            brought straight to your door with a flat 5% delivery charge.
+            Slow-simmered heirloom recipes, live charcoal grills, and warm
+            hospitality—delivered straight to your doorstep anywhere in Multan
+            with a flat 5% delivery charge.
           </p>
 
-          <div class="flex flex-wrap items-center gap-3 pt-1">
+          <div
+            class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 pt-2"
+          >
             <a
               href="#menu-section"
-              class="px-6 py-3.5 rounded-full bg-[#1F4E3D] hover:bg-[#163B2E] text-white font-semibold text-xs sm:text-sm shadow-md qasr-press"
+              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-[0.2em] shadow-xl qasr-pressable"
             >
-              Explore the menu →
+              Explore The Menu
             </a>
-            <span class="text-xs text-stone-500">• Prepared fresh daily</span>
-          </div>
-
-          <div
-            class="pt-5 border-t border-stone-200/90 grid grid-cols-3 gap-4 max-w-md text-xs"
-          >
-            <div>
-              <p class="font-bold text-base text-stone-900">4.9 ★</p>
-              <p class="text-stone-500 text-[11px]">Multan diners</p>
-            </div>
-            <div>
-              <p class="font-bold text-base text-stone-900">25–35 min</p>
-              <p class="text-stone-500 text-[11px]">Average delivery</p>
-            </div>
-            <div>
-              <p class="font-bold text-base text-stone-900">5% Fee</p>
-              <p class="text-stone-500 text-[11px]">Local Multan delivery</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="lg:col-span-6 relative qasr-hero-enter">
-          <div
-            class="rounded-3xl overflow-hidden shadow-2xl border border-stone-200/80 aspect-[4/3] bg-stone-200"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=85"
-              alt="Signature freshly plated dishes"
-              class="w-full h-full object-cover hover:scale-103 transition duration-700"
-            />
-          </div>
-
-          <!-- Floating Corner Badge Card -->
-          <div
-            id="heroFloatingCard"
-            class="hidden sm:flex items-center gap-3 bg-white border border-stone-200 rounded-2xl px-4 py-3 shadow-xl absolute -bottom-4 left-6"
-          >
-            <span
-              class="w-8 h-8 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center text-sm font-bold"
-              >♥</span
+            <a
+              href="./track-order.html"
+              class="text-center px-7 py-3.5 sm:py-4 rounded-full bg-stone-900/85 hover:bg-stone-800 text-stone-100 border border-amber-500/30 font-semibold text-xs uppercase tracking-[0.2em] qasr-pressable"
             >
+              Live Order Tracker
+            </a>
+          </div>
+
+          <div
+            class="pt-6 sm:pt-8 grid grid-cols-3 gap-3 sm:gap-6 max-w-lg border-t border-stone-800/80 text-xs"
+          >
             <div>
-              <p class="text-xs font-bold text-stone-900">Made with care</p>
-              <p class="text-[11px] text-stone-500">
-                Tap Order Now or Add to Bag
+              <p
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                Live Flame
+              </p>
+              <p
+                class="text-stone-400 uppercase tracking-wider text-[10px] mt-0.5"
+              >
+                Charcoal & Karahi
+              </p>
+            </div>
+            <div>
+              <p
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                5% Flat
+              </p>
+              <p
+                class="text-stone-400 uppercase tracking-wider text-[10px] mt-0.5"
+              >
+                Multan Delivery
+              </p>
+            </div>
+            <div>
+              <p
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                12 PM – 1 AM
+              </p>
+              <p
+                class="text-stone-400 uppercase tracking-wider text-[10px] mt-0.5"
+              >
+                Open Daily
               </p>
             </div>
           </div>
@@ -415,216 +458,296 @@
       </div>
     </section>
 
-    <!-- Live Menu Section (Admin-Managed via Firebase) -->
-    <main
-      id="menu-section"
-      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-14 sm:py-16 space-y-8"
-    >
-      <div
-        class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 qasr-reveal"
-      >
-        <div class="space-y-1.5">
-          <p
-            class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#C86428]"
-          >
-            Made For Your Cravings
-          </p>
-          <h2
-            id="menuHeading"
-            class="font-serif text-3xl sm:text-4xl font-bold text-stone-900"
-          >
-            The good stuff.
-          </h2>
-          <p id="menuSubheading" class="text-xs sm:text-sm text-stone-600">
-            Live menu synced with Admin—add to your bag or tap Order Now for a
-            single dish.
-          </p>
-        </div>
-
-        <div class="w-full sm:w-64">
-          <input
-            id="menuSearchInput"
-            type="search"
-            placeholder="Search dishes..."
-            class="w-full px-4 py-2 rounded-full bg-white border border-stone-300 text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#1F4E3D] transition"
-          />
-        </div>
-      </div>
-
-      <!-- Category Pills -->
-      <div
-        id="categoryFilters"
-        class="flex items-center gap-2 overflow-x-auto pb-1 flex-wrap qasr-reveal"
-      ></div>
-
-      <!-- Menu Cards Grid -->
-      <div
-        id="menuGrid"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6"
-      ></div>
-    </main>
-
-    <!-- Culinary Story & Multan Location Section -->
+    <!-- Story / Culinary Philosophy Section -->
     <section
       id="story-section"
-      class="bg-white border-t border-stone-200 py-14 sm:py-16 transition-colors duration-300"
+      class="py-16 sm:py-20 bg-[#141210] border-b border-amber-500/10 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center qasr-reveal"
+        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center qasr-reveal"
       >
-        <div class="lg:col-span-6 space-y-4">
-          <p
-            class="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1F4E3D]"
+        <div class="lg:col-span-5 relative">
+          <div
+            class="aspect-[4/3] sm:aspect-[4/5] rounded-2xl overflow-hidden border border-amber-500/20 shadow-2xl"
           >
-            Our Kitchen & Location
-          </p>
+            <img
+              src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80"
+              alt="Signature charcoal grill presentation"
+              class="w-full h-full object-cover hover:scale-105 transition duration-700"
+            />
+          </div>
+          <div
+            id="storyBadgeCard"
+            class="hidden sm:block absolute -bottom-6 -right-6 bg-[#1B1815] border border-amber-500/30 rounded-2xl p-5 shadow-xl max-w-[220px]"
+          >
+            <p class="font-serif text-amber-400 text-lg font-bold">
+              Crafted to Order
+            </p>
+            <p class="text-xs text-stone-400 mt-1 leading-relaxed">
+              Every dish leaves our Gulgasht kitchen fresh off the flame.
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 space-y-5 sm:space-y-6">
+          <div class="inline-flex items-center gap-3">
+            <span class="h-px w-8 bg-amber-400"></span>
+            <span
+              class="text-xs font-semibold uppercase tracking-[0.28em] text-amber-400"
+              >Culinary Craft</span
+            >
+          </div>
           <h2
             id="storyHeading"
-            class="font-serif text-2xl sm:text-4xl font-bold text-stone-900"
+            class="font-serif text-2xl sm:text-5xl font-bold leading-tight"
           >
-            Gulgasht Colony, Multan
+            Where Traditional Spice Meets Modern Fine Dining
           </h2>
           <p
             id="storyBody"
-            class="text-stone-600 text-xs sm:text-sm leading-relaxed"
+            class="text-stone-300 text-sm sm:text-base leading-relaxed"
           >
-            Located in
-            <strong>Gulgasht Colony, Multan, Punjab, Pakistan</strong>. Every
-            menu item, price, discount, and stock status is managed live by our
-            kitchen team, and orders deliver across Multan at a flat
-            <strong>5% delivery charge</strong>.
+            Inspired by classic supper-club warmth and Multan's rich culinary
+            heritage, our kitchen roasts whole spices daily, prepares fresh cuts
+            to order, and finishes every dish with signature aromatics.
           </p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div
               id="featureCard1"
-              class="p-4 rounded-2xl bg-[#F7F5F0] border border-stone-200/80"
+              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300"
             >
-              <p class="text-xs font-bold text-stone-900">
-                Single Dish or Full Bag
-              </p>
-              <p class="text-[11px] text-stone-600 mt-1">
-                Order one dish right away or tap Show Cart to order everything
-                in your bag.
+              <h3
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                Instant or Full-Cart Checkout
+              </h3>
+              <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">
+                Tap Order Now for a single dish in seconds, or Add to Cart and
+                order everything together.
               </p>
             </div>
             <div
               id="featureCard2"
-              class="p-4 rounded-2xl bg-[#F7F5F0] border border-stone-200/80"
+              class="p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300"
             >
-              <p class="text-xs font-bold text-stone-900">
-                Live Order Tracking
-              </p>
-              <p class="text-[11px] text-stone-600 mt-1">
-                Follow your order from Pending to Preparing and Out for
-                Delivery.
+              <h3
+                class="font-serif text-base sm:text-lg font-bold text-amber-400"
+              >
+                Pin-Drop Multan Delivery
+              </h3>
+              <p class="text-xs text-stone-400 mt-1.5 leading-relaxed">
+                Drop your exact pin inside Multan during checkout for doorstep
+                delivery at a flat 5% fee.
               </p>
             </div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div id="location-section" class="lg:col-span-6">
+    <!-- Live Menu Section -->
+    <main
+      id="menu-section"
+      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-16 sm:py-20 space-y-8 sm:space-y-10"
+    >
+      <div class="text-center max-w-2xl mx-auto space-y-2.5 qasr-reveal">
+        <p
+          class="text-xs font-semibold uppercase tracking-[0.3em] text-amber-400"
+        >
+          Seasonal & Signature
+        </p>
+        <h2 id="menuHeading" class="font-serif text-3xl sm:text-5xl font-bold">
+          The Tasting & Dining Menu
+        </h2>
+        <p id="menuSubheading" class="text-xs sm:text-sm text-stone-400">
+          Add dishes to your cart or tap Order Now for an instant single-item
+          order.
+        </p>
+      </div>
+
+      <div
+        class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 pb-3 border-b border-stone-800/80 qasr-reveal"
+      >
+        <div
+          id="categoryFilters"
+          class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 md:flex-wrap"
+        ></div>
+
+        <div class="w-full md:w-72 shrink-0">
+          <input
+            id="menuSearchInput"
+            type="search"
+            placeholder="Search dishes..."
+            class="w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition"
+          />
+        </div>
+      </div>
+
+      <div
+        id="menuGrid"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7"
+      ></div>
+    </main>
+
+    <!-- Bottom Store Location Map (Gulgasht Colony, Multan, Punjab, Pakistan) -->
+    <section
+      id="location-section"
+      class="bg-[#141210] border-t border-amber-500/15 py-16 sm:py-20 transition-colors duration-300"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center qasr-reveal"
+      >
+        <div class="lg:col-span-5 space-y-4">
+          <div class="inline-flex items-center gap-3">
+            <span class="h-px w-8 bg-amber-400"></span>
+            <span
+              class="text-xs font-semibold uppercase tracking-[0.28em] text-amber-400"
+              >Find Us</span
+            >
+          </div>
+          <h2
+            id="locationHeading"
+            class="font-serif text-2xl sm:text-4xl font-bold"
+          >
+            Gulgasht Colony, Multan
+          </h2>
+          <p
+            id="locationBody"
+            class="text-stone-300 text-xs sm:text-sm leading-relaxed"
+          >
+            Situated in the heart of
+            <strong>Gulgasht Colony, Multan, Punjab, Pakistan</strong>. Online
+            delivery serves Multan city exclusively at a
+            <strong>5% delivery charge</strong>.
+          </p>
+          <div
+            id="locationMeta"
+            class="pt-2 space-y-1.5 text-xs text-stone-400 border-t border-stone-800"
+          >
+            <p>
+              <strong class="text-stone-200">Hours:</strong> Monday – Sunday,
+              12:00 PM – 1:00 AM
+            </p>
+            <p>
+              <strong class="text-stone-200">Delivery Zone:</strong> Multan City
+              Limits Only
+            </p>
+          </div>
+        </div>
+        <div class="lg:col-span-7">
           <div
             id="storeLocationMap"
-            class="w-full h-64 sm:h-72 rounded-2xl border border-stone-300 shadow-lg z-10"
+            class="w-full h-64 sm:h-80 rounded-2xl border border-amber-500/25 shadow-2xl z-10"
           ></div>
         </div>
       </div>
     </section>
 
-    <!-- Clean Multi-Column Footer with Crest Logo -->
+    <!-- Upgraded Multi-Column Footer with Brand Logo -->
     <footer
       id="mainFooter"
-      class="bg-[#EFECE4] text-stone-700 border-t border-stone-300/80 pb-20 sm:pb-0 transition-colors duration-300"
+      class="bg-[#0A0908] text-stone-400 border-t border-amber-500/15 pb-20 sm:pb-0 transition-colors duration-300"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 md:grid-cols-12 gap-8 border-b border-stone-300/70"
+        class="max-w-7xl mx-auto px-4 sm:px-8 py-14 grid grid-cols-1 md:grid-cols-12 gap-10 border-b border-stone-800/70"
       >
-        <div class="md:col-span-5 space-y-3">
-          <div class="flex items-center gap-2.5">
+        <div class="md:col-span-5 space-y-4">
+          <div class="flex items-center gap-3">
             <span
               id="footerLogoBadge"
-              class="w-10 h-10 rounded-full bg-[#1F4E3D] text-white flex items-center justify-center shrink-0"
+              class="w-11 h-11 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0"
             >
-              <svg class="w-5 h-5"><use href="#qasr-crest-logo"></use></svg>
+              <svg class="w-6 h-6"><use href="#qasr-crest-logo"></use></svg>
             </span>
             <div>
               <p
                 id="footerBrandTitle"
-                class="font-serif text-lg font-bold text-stone-900"
+                class="font-serif text-xl font-bold text-amber-400 tracking-wide"
               >
                 Qasr-e-Dastarkhwan
               </p>
-              <p class="text-[10px] uppercase tracking-[0.2em] text-stone-500">
-                Gulgasht Colony • Multan
+              <p class="text-[10px] uppercase tracking-[0.25em] text-stone-500">
+                Royal Kitchen • Multan
               </p>
             </div>
           </div>
-          <p id="footerBrandText" class="text-xs leading-relaxed max-w-sm">
+          <p
+            id="footerBrandText"
+            class="text-xs sm:text-sm leading-relaxed max-w-sm"
+          >
             Serving signature grills, slow-simmered karahis, and fragrant
-            biryanis in Multan, Punjab, Pakistan.
+            biryanis from Gulgasht Colony, Multan, Punjab, Pakistan.
           </p>
         </div>
 
-        <div class="md:col-span-3 space-y-2.5 text-xs">
-          <p class="font-bold uppercase tracking-[0.18em] text-stone-900">
-            Pages
+        <div class="md:col-span-3 space-y-3 text-xs">
+          <p class="font-bold uppercase tracking-[0.2em] text-amber-400">
+            Explore
           </p>
-          <ul class="space-y-2">
+          <ul class="space-y-2.5">
             <li>
-              <a href="#menu-section" class="hover:text-[#1F4E3D] transition"
-                >Menu</a
+              <a href="#story-section" class="hover:text-amber-300 transition"
+                >Our Culinary Story</a
+              >
+            </li>
+            <li>
+              <a href="#menu-section" class="hover:text-amber-300 transition"
+                >Full Menu</a
               >
             </li>
             <li>
               <a
                 href="./track-order.html"
-                class="hover:text-[#1F4E3D] transition"
-                >Track Order</a
+                class="hover:text-amber-300 transition"
+                >Track Live Order</a
               >
             </li>
             <li>
               <a
                 href="./auth.html?mode=login"
-                class="hover:text-[#1F4E3D] transition"
-                >Customer Sign In</a
+                class="hover:text-amber-300 transition"
+                >Customer Login</a
               >
             </li>
             <li>
               <a
                 href="./admin/login.html"
-                class="hover:text-[#1F4E3D] transition"
-                >Admin Dashboard</a
+                class="hover:text-amber-300 transition"
+                >Admin Portal</a
               >
             </li>
           </ul>
         </div>
 
-        <div id="footerContactCol" class="md:col-span-4 space-y-2 text-xs">
-          <p class="font-bold uppercase tracking-[0.18em] text-stone-900">
-            Hours & Delivery
+        <div id="footerContactCol" class="md:col-span-4 space-y-3 text-xs">
+          <p class="font-bold uppercase tracking-[0.2em] text-amber-400">
+            Location & Delivery
           </p>
-          <p>Gulgasht Colony, Multan, Punjab, Pakistan</p>
+          <p class="leading-relaxed">
+            Gulgasht Colony, Multan, Punjab, Pakistan
+          </p>
           <p>
             Open Daily: <span class="font-semibold">12:00 PM – 1:00 AM</span>
           </p>
           <p>
             Delivery Fee:
-            <span class="font-semibold text-[#1F4E3D]"
-              >5% Flat (Multan Only)</span
+            <span class="font-semibold text-emerald-400"
+              >5% of Order Subtotal</span
             >
+            (Multan Only)
           </p>
         </div>
       </div>
 
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-stone-500"
+        class="max-w-7xl mx-auto px-4 sm:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-stone-500"
       >
         <p>© 2026 Qasr-e-Dastarkhwan. All rights reserved.</p>
-        <p>Multan, Punjab, Pakistan</p>
+        <p>Handcrafted Dining & Real-Time Delivery in Multan</p>
       </div>
     </footer>
 
-    <!-- Mobile Floating Bag Bar -->
+    <!-- Mobile Floating Cart Bar -->
     <div
       id="mobileOrderBar"
       class="sm:hidden fixed bottom-3 inset-x-3 z-30 hidden"
@@ -632,37 +755,44 @@
       <button
         id="mobileOpenCartBtn"
         type="button"
-        class="w-full py-3.5 px-5 rounded-2xl bg-[#1F4E3D] hover:bg-[#163B2E] text-white font-bold text-xs uppercase tracking-wider shadow-2xl flex items-center justify-between qasr-press cursor-pointer"
+        class="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-2xl flex items-center justify-between qasr-pressable cursor-pointer"
       >
-        <span>View Bag (<span id="mobileCartCount">0</span> items)</span>
-        <span id="mobileCartTotal" class="font-extrabold text-amber-300"
-          >Rs. 0</span
-        >
+        <span>View Cart (<span id="mobileCartCount">0</span> items)</span>
+        <span id="mobileCartTotal" class="font-extrabold">Rs. 0</span>
       </button>
     </div>
 
-    <!-- LEFT DRAWER: USER PROFILE & ORDERS -->
+    <!-- LEFT SLIDE-OVER: USER PROFILE & MY ORDERS DRAWER -->
     <div
       id="profileBackdrop"
-      class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden"
+      class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden transition-opacity duration-300"
     ></div>
     <aside
       id="profileDrawer"
-      class="fixed top-0 left-0 h-full w-full max-w-md bg-white text-stone-900 z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col"
+      class="fixed top-0 left-0 h-full w-full max-w-md bg-white text-stone-900 z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-out flex flex-col"
     >
       <div
-        class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#1F4E3D] text-white"
+        class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#0F0E0D] text-white"
       >
-        <div>
-          <h3 class="font-serif text-base font-bold">My Account & Orders</h3>
-          <p class="text-[11px] text-emerald-100/80">
-            Profile & confirmed orders
-          </p>
+        <div class="flex items-center gap-2.5">
+          <span
+            class="w-8 h-8 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-400 flex items-center justify-center"
+          >
+            <svg class="w-4 h-4"><use href="#qasr-crest-logo"></use></svg>
+          </span>
+          <div>
+            <h3 class="font-serif text-base font-bold text-amber-400">
+              My Account & Orders
+            </h3>
+            <p class="text-[11px] text-stone-400">
+              Profile details & confirmed orders
+            </p>
+          </div>
         </div>
         <button
           id="closeProfileBtn"
           type="button"
-          class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-semibold qasr-press cursor-pointer"
+          class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold qasr-pressable cursor-pointer"
         >
           ✕ Close
         </button>
@@ -671,8 +801,9 @@
       <div class="flex-1 overflow-y-auto p-6 space-y-6">
         <div
           id="profileDetailsCard"
-          class="bg-[#F7F5F0] border border-stone-200 rounded-2xl p-4 space-y-1.5 text-sm"
+          class="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-1.5 text-sm"
         ></div>
+
         <div class="space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-stone-500">
             My Confirmed Orders
@@ -681,34 +812,37 @@
         </div>
       </div>
 
-      <div class="p-4 border-t border-stone-200 bg-[#F7F5F0]">
+      <div class="p-4 border-t border-stone-200 bg-stone-50">
         <button
           id="userLogoutBtn"
           type="button"
-          class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold qasr-press cursor-pointer"
+          class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold qasr-pressable cursor-pointer"
         >
           Logout of Account
         </button>
       </div>
     </aside>
 
-    <!-- RIGHT DRAWER: SINGLE-ITEM "ORDER NOW" OR FULL "CART" CHECKOUT -->
+    <!-- RIGHT SLIDE-OVER: SINGLE-ITEM "ORDER NOW" OR FULL "CART" CHECKOUT DRAWER -->
     <div
       id="cartBackdrop"
-      class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden"
+      class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden transition-opacity duration-300"
     ></div>
     <aside
       id="cartDrawer"
-      class="fixed top-0 right-0 h-full w-full max-w-lg bg-white text-stone-900 z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+      class="fixed top-0 right-0 h-full w-full max-w-lg bg-white text-stone-900 z-50 shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col"
     >
       <div
-        class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#1F4E3D] text-white"
+        class="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#0F0E0D] text-white"
       >
         <div>
-          <h3 id="drawerHeading" class="font-serif text-xl font-bold">
+          <h3
+            id="drawerHeading"
+            class="font-serif text-xl font-bold text-amber-400"
+          >
             Your Cart
           </h3>
-          <p id="cartEtaText" class="text-xs text-emerald-100/85 mt-0.5">
+          <p id="cartEtaText" class="text-xs text-stone-400 mt-0.5">
             Est. delivery: —
           </p>
         </div>
@@ -716,14 +850,14 @@
           <button
             id="showFullCartBtn"
             type="button"
-            class="hidden px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-bold qasr-press cursor-pointer"
+            class="hidden px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-bold qasr-pressable cursor-pointer"
           >
             Show Cart (<span id="directShowCartCount">0</span>)
           </button>
           <button
             id="closeCartBtn"
             type="button"
-            class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-sm font-semibold qasr-press cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold qasr-pressable cursor-pointer"
           >
             ✕ Close
           </button>
@@ -735,7 +869,7 @@
 
         <div
           id="cartTotalsBox"
-          class="bg-[#F7F5F0] border border-stone-200 rounded-xl p-4 space-y-1.5 text-sm"
+          class="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-1.5 text-sm"
         >
           <div class="flex justify-between text-stone-600">
             <span>Subtotal</span>
@@ -749,7 +883,7 @@
             class="flex justify-between text-base font-bold text-stone-900 pt-2 border-t border-stone-200"
           >
             <span>Grand Total</span>
-            <span id="cartGrandTotal" class="text-[#1F4E3D]">Rs. 0</span>
+            <span id="cartGrandTotal" class="text-amber-700">Rs. 0</span>
           </div>
         </div>
 
@@ -759,14 +893,14 @@
             type="text"
             required
             placeholder="Your Full Name"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-[#1F4E3D]"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
           />
           <input
             id="custPhone"
             type="tel"
             required
             placeholder="Phone Number (e.g. 03001234567)"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-[#1F4E3D]"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
           />
 
           <div class="space-y-1.5">
@@ -777,7 +911,7 @@
               <button
                 id="useMyGpsBtn"
                 type="button"
-                class="text-[11px] font-semibold text-[#1F4E3D] hover:underline cursor-pointer"
+                class="text-[11px] font-semibold text-amber-700 hover:underline cursor-pointer"
               >
                 Use Current GPS
               </button>
@@ -799,20 +933,20 @@
             type="text"
             required
             placeholder="Detected Multan Address (or add house/street #)"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-[#1F4E3D]"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
           />
           <input
             id="custNotes"
             type="text"
             placeholder="Delivery / Spice Notes (optional)"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-[#1F4E3D]"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-sm focus:outline-none focus:border-amber-600 transition"
           />
 
           <button
             id="placeOrderBtn"
             type="submit"
             disabled
-            class="w-full py-3 px-4 rounded-xl bg-[#1F4E3D] hover:bg-[#163B2E] disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold text-sm qasr-press cursor-pointer"
+            class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-semibold text-sm qasr-pressable cursor-pointer"
           >
             Place Order & Send on WhatsApp
           </button>
@@ -832,7 +966,7 @@
               href="#"
               target="_blank"
               rel="noopener noreferrer"
-              class="px-3.5 py-2 rounded-lg bg-[#1F4E3D] hover:bg-[#163B2E] text-white font-semibold"
+              class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
             >
               Open WhatsApp Receipt ↗
             </a>
