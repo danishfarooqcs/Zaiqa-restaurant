@@ -9,7 +9,6 @@ import {
   onValue,
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-//  EXISTING FIREBASE CONFIG HERE
 const firebaseConfig = {
   apiKey: "AIzaSyA973T6GYQl9yk4IUozCbmfSfhRZaPot5Q",
   authDomain: "zaiqa-restaurant-system.firebaseapp.com",
@@ -29,11 +28,21 @@ const CART_KEY = "restro_cart_v1";
 const LAST_ORDER_KEY = "restro_last_order_id";
 
 const DEFAULT_SETTINGS = {
-  restaurantName: "Zaiqa Royal Kitchen",
+  restaurantName: "Qasr-e-Dastarkhwan",
   whatsappNumber: "923001234567",
   deliveryPercent: 5,
   baseDeliveryMins: 25,
   adminPin: "admin123",
+};
+
+const DEFAULT_ADMINS = {
+  adm_primary: {
+    id: "adm_primary",
+    name: "Primary Admin",
+    email: "danishfarooq.cs@gmail.com",
+    password: "zaiqateamemerson@786",
+    role: "Owner",
+  },
 };
 
 const DEFAULT_MENU = {
@@ -87,6 +96,7 @@ const DEFAULT_MENU = {
 const state = {
   menu: [],
   orders: [],
+  admins: [],
   settings: { ...DEFAULT_SETTINGS },
   initialized: false,
 };
@@ -112,6 +122,17 @@ function startRealtimeListeners() {
     } else {
       set(ref(db, "settings"), DEFAULT_SETTINGS);
       state.settings = { ...DEFAULT_SETTINGS };
+    }
+    notify();
+  });
+
+  onValue(ref(db, "admins"), (snap) => {
+    const val = snap.val();
+    if (val) {
+      state.admins = Object.values(val);
+    } else {
+      set(ref(db, "admins"), DEFAULT_ADMINS);
+      state.admins = Object.values(DEFAULT_ADMINS);
     }
     notify();
   });
@@ -160,6 +181,37 @@ export const Store = {
     return updated;
   },
 
+  getAdmins() {
+    this.init();
+    return state.admins;
+  },
+
+  async addAdmin(adminObj) {
+    this.init();
+    await set(ref(db, `admins/${adminObj.id}`), adminObj);
+    if (!state.admins.some((a) => a.id === adminObj.id)) {
+      state.admins = [...state.admins, adminObj];
+    }
+    notify();
+    return adminObj;
+  },
+
+  async updateAdmin(id, updates) {
+    this.init();
+    await update(ref(db, `admins/${id}`), updates);
+    state.admins = state.admins.map((a) =>
+      a.id === id ? { ...a, ...updates } : a,
+    );
+    notify();
+  },
+
+  async deleteAdmin(id) {
+    this.init();
+    await remove(ref(db, `admins/${id}`));
+    state.admins = state.admins.filter((a) => a.id !== id);
+    notify();
+  },
+
   getMenu() {
     this.init();
     return state.menu;
@@ -200,6 +252,19 @@ export const Store = {
     notify();
   },
 
+  buildLineItemFromProduct(product, qty = 1) {
+    return {
+      id: product.id,
+      name: product.name,
+      price: getEffectivePrice(product),
+      originalPrice: product.price,
+      offPercent: product.offPercent || 0,
+      prepTime: product.prepTime,
+      image: product.image,
+      qty,
+    };
+  },
+
   getCart() {
     this.init();
     const rawCart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
@@ -209,15 +274,7 @@ export const Store = {
       .map((cartItem) => {
         const liveItem = state.menu.find((m) => m.id === cartItem.id);
         if (!liveItem || !liveItem.inStock) return null;
-        return {
-          ...cartItem,
-          name: liveItem.name,
-          price: getEffectivePrice(liveItem),
-          originalPrice: liveItem.price,
-          offPercent: liveItem.offPercent || 0,
-          prepTime: liveItem.prepTime,
-          image: liveItem.image,
-        };
+        return this.buildLineItemFromProduct(liveItem, cartItem.qty);
       })
       .filter(Boolean);
 
@@ -236,16 +293,7 @@ export const Store = {
     if (existing) {
       existing.qty += 1;
     } else {
-      cart.push({
-        id: product.id,
-        name: product.name,
-        price: getEffectivePrice(product),
-        originalPrice: product.price,
-        offPercent: product.offPercent || 0,
-        prepTime: product.prepTime,
-        image: product.image,
-        qty: 1,
-      });
+      cart.push(this.buildLineItemFromProduct(product, 1));
     }
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
     notify();
@@ -267,20 +315,41 @@ export const Store = {
     notify();
   },
 
-  getCartSummary() {
-    const cart = this.getCart();
+  computeSummaryForItems(items) {
     const settings = this.getSettings();
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-    // 5% delivery charges of total subtotal
-    const deliveryFee = cart.length > 0 ? Math.round(subtotal * 0.05) : 0;
+    const cleanItems = Array.isArray(items)
+      ? items.filter((i) => i && i.qty > 0)
+      : [];
+    const subtotal = cleanItems.reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0,
+    );
+    const deliveryFee = cleanItems.length > 0 ? Math.round(subtotal * 0.05) : 0;
     const total = subtotal + deliveryFee;
     const maxPrep =
-      cart.length > 0 ? Math.max(...cart.map((i) => i.prepTime || 15)) : 0;
+      cleanItems.length > 0
+        ? Math.max(...cleanItems.map((i) => i.prepTime || 15))
+        : 0;
     const estDeliveryMins =
-      cart.length > 0 ? maxPrep + Number(settings.baseDeliveryMins || 25) : 0;
-    const itemCount = cart.reduce((sum, item) => sum + item.qty, 0);
+      cleanItems.length > 0
+        ? maxPrep + Number(settings.baseDeliveryMins || 25)
+        : 0;
+    const itemCount = cleanItems.reduce((sum, item) => sum + item.qty, 0);
 
-    return { cart, subtotal, deliveryFee, total, estDeliveryMins, itemCount };
+    return {
+      items: cleanItems,
+      subtotal,
+      deliveryFee,
+      total,
+      estDeliveryMins,
+      itemCount,
+    };
+  },
+
+  getCartSummary() {
+    const cart = this.getCart();
+    const summary = this.computeSummaryForItems(cart);
+    return { ...summary, cart };
   },
 
   getOrders() {
@@ -309,10 +378,15 @@ export const Store = {
     coords,
     notes,
     userEmail,
+    customItems = null,
+    clearMainCart = true,
   }) {
     this.init();
-    const summary = this.getCartSummary();
-    if (summary.cart.length === 0) return null;
+    const summary = customItems
+      ? this.computeSummaryForItems(customItems)
+      : this.getCartSummary();
+
+    if (summary.items.length === 0) return null;
 
     const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
     const newOrder = {
@@ -323,7 +397,7 @@ export const Store = {
       coords: coords || null,
       notes: notes || "",
       userEmail: userEmail || "",
-      items: summary.cart,
+      items: summary.items,
       subtotal: summary.subtotal,
       deliveryFee: summary.deliveryFee,
       total: summary.total,
@@ -335,7 +409,9 @@ export const Store = {
 
     await set(ref(db, `orders/${orderId}`), newOrder);
     localStorage.setItem(LAST_ORDER_KEY, orderId);
-    this.clearCart();
+    if (clearMainCart && !customItems) {
+      this.clearCart();
+    }
     return newOrder;
   },
 
@@ -380,6 +456,7 @@ export const Store = {
     this.init();
     await set(ref(db, "menu"), DEFAULT_MENU);
     await set(ref(db, "settings"), DEFAULT_SETTINGS);
+    await set(ref(db, "admins"), DEFAULT_ADMINS);
     await remove(ref(db, "orders"));
     localStorage.removeItem(CART_KEY);
     localStorage.removeItem(LAST_ORDER_KEY);

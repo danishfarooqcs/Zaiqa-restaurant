@@ -18,6 +18,9 @@ let searchQuery = "";
 let currentTheme =
   localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
 
+// null = checkout uses full cart; object = single-item "Order Now" mode
+let directOrderItem = null;
+
 // Gulgasht Colony, Multan, Punjab, Pakistan
 const GULGASHT_MULTAN = { lat: 30.2225, lng: 71.4718 };
 const MULTAN_BOUNDS = {
@@ -42,17 +45,10 @@ const els = {
   desktopNav: document.getElementById("desktopNav"),
   navLoginBtn: document.getElementById("navLoginBtn"),
   navSignupBtn: document.getElementById("navSignupBtn"),
-  navAdminLink: document.getElementById("navAdminLink"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
   themeIcon: document.getElementById("themeIcon"),
   themeLabel: document.getElementById("themeLabel"),
   heroSection: document.getElementById("heroSection"),
-  heroOverlay: document.getElementById("heroOverlay"),
-  heroBottomFade: document.getElementById("heroBottomFade"),
-  heroTitle: document.getElementById("heroTitle"),
-  heroDesc: document.getElementById("heroDesc"),
-  heroTrackBtn: document.getElementById("heroTrackBtn"),
-  heroStats: document.getElementById("heroStats"),
   storySection: document.getElementById("story-section"),
   storyBadgeCard: document.getElementById("storyBadgeCard"),
   storyHeading: document.getElementById("storyHeading"),
@@ -66,7 +62,9 @@ const els = {
   locationBody: document.getElementById("locationBody"),
   locationMeta: document.getElementById("locationMeta"),
   mainFooter: document.getElementById("mainFooter"),
+  footerBrandTitle: document.getElementById("footerBrandTitle"),
   footerBrandText: document.getElementById("footerBrandText"),
+  footerContactCol: document.getElementById("footerContactCol"),
   activeOrderDot: document.getElementById("activeOrderDot"),
   mobileOrderDot: document.getElementById("mobileOrderDot"),
   mobileOrderBar: document.getElementById("mobileOrderBar"),
@@ -87,6 +85,9 @@ const els = {
   closeCartBtn: document.getElementById("closeCartBtn"),
   cartBackdrop: document.getElementById("cartBackdrop"),
   cartDrawer: document.getElementById("cartDrawer"),
+  drawerHeading: document.getElementById("drawerHeading"),
+  showFullCartBtn: document.getElementById("showFullCartBtn"),
+  directShowCartCount: document.getElementById("directShowCartCount"),
   cartCountBadge: document.getElementById("cartCountBadge"),
   cartEtaText: document.getElementById("cartEtaText"),
   cartItemsContainer: document.getElementById("cartItemsContainer"),
@@ -125,12 +126,12 @@ function applyTheme() {
     : "sticky top-0 z-30 bg-[#0F0E0D]/92 backdrop-blur-md border-b border-amber-500/15 transition-colors duration-300";
 
   els.navBrandName.className = light
-    ? "font-serif text-base sm:text-2xl font-bold text-amber-800 tracking-wide sm:tracking-wider uppercase truncate transition"
-    : "font-serif text-base sm:text-2xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition";
+    ? "font-serif text-sm sm:text-xl font-bold text-amber-800 tracking-wide sm:tracking-wider uppercase truncate transition"
+    : "font-serif text-sm sm:text-xl font-bold text-amber-400 tracking-wide sm:tracking-wider uppercase truncate group-hover:text-amber-300 transition";
 
   els.navSubtitle.className = light
-    ? "text-[10px] uppercase tracking-[0.26em] text-stone-500 hidden sm:block"
-    : "text-[10px] uppercase tracking-[0.26em] text-stone-400 hidden sm:block";
+    ? "text-[10px] uppercase tracking-[0.24em] text-stone-500 hidden sm:block"
+    : "text-[10px] uppercase tracking-[0.24em] text-stone-400 hidden sm:block";
 
   els.desktopNav.className = light
     ? "hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-semibold text-stone-700"
@@ -145,8 +146,8 @@ function applyTheme() {
     : "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 transition";
 
   els.navSignupBtn.className = light
-    ? "hidden xs:inline-block sm:inline-block px-2.5 sm:px-3.5 py-2 rounded-full bg-amber-700 hover:bg-amber-600 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-white transition"
-    : "hidden xs:inline-block sm:inline-block px-2.5 sm:px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-amber-400 transition";
+    ? "hidden sm:inline-block px-3.5 py-2 rounded-full bg-amber-700 hover:bg-amber-600 text-xs uppercase tracking-wider font-semibold text-white transition"
+    : "hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 transition";
 
   els.mobileSubBar.className = light
     ? "sm:hidden border-t border-stone-200 bg-[#F4EFE6] px-3 py-2 flex items-center justify-between text-[11px] text-stone-700"
@@ -155,10 +156,6 @@ function applyTheme() {
   els.mobileSignupLink.className = light
     ? "text-amber-800 font-bold"
     : "text-amber-400 font-semibold";
-
-  els.heroSection.className = light
-    ? "relative min-h-[70vh] sm:min-h-[80vh] flex items-center overflow-hidden border-b border-stone-200 bg-stone-900 text-white"
-    : "relative min-h-[72vh] sm:min-h-[82vh] flex items-center overflow-hidden border-b border-amber-500/15 bg-[#0F0E0D] text-white";
 
   els.storySection.className = light
     ? "py-16 sm:py-20 bg-white border-b border-stone-200 transition-colors duration-300"
@@ -211,8 +208,8 @@ function applyTheme() {
     : "pt-2 space-y-1.5 text-xs text-stone-400 border-t border-stone-800";
 
   els.mainFooter.className = light
-    ? "bg-[#EFEAE0] text-stone-600 border-t border-stone-200 pb-20 sm:pb-10 transition-colors duration-300"
-    : "bg-[#0A0908] text-stone-400 border-t border-stone-900 pb-20 sm:pb-10 transition-colors duration-300";
+    ? "bg-[#EFEAE0] text-stone-700 border-t border-stone-300 pb-20 sm:pb-0 transition-colors duration-300"
+    : "bg-[#0A0908] text-stone-400 border-t border-amber-500/15 pb-20 sm:pb-0 transition-colors duration-300";
 }
 
 function formatPrice(amount) {
@@ -296,7 +293,7 @@ function initMaps() {
     window.L.marker([GULGASHT_MULTAN.lat, GULGASHT_MULTAN.lng])
       .addTo(storeMap)
       .bindPopup(
-        "<strong>Zaiqa Royal Kitchen</strong><br>Gulgasht Colony, Multan, Punjab, Pakistan",
+        "<strong>Qasr-e-Dastarkhwan</strong><br>Gulgasht Colony, Multan, Punjab, Pakistan",
       )
       .openPopup();
   }
@@ -369,9 +366,10 @@ function renderProfileDrawer() {
 
 function renderBrand() {
   const settings = Store.getSettings();
-  document.title = `${settings.restaurantName} | Order Fresh Online`;
+  document.title = `${settings.restaurantName} | Fine Dining & Online Ordering`;
   els.navBrandName.textContent = settings.restaurantName;
-  els.footerBrandText.textContent = `${settings.restaurantName} • Gulgasht Colony, Multan, Punjab, Pakistan`;
+  els.footerBrandTitle.textContent = settings.restaurantName;
+  els.footerBrandText.textContent = `Serving signature grills, slow-simmered karahis, and fragrant biryanis from Gulgasht Colony, Multan, Punjab, Pakistan.`;
 
   const lastOrderId = localStorage.getItem("restro_last_order_id");
   const lastOrder = lastOrderId ? Store.getOrderById(lastOrderId) : null;
@@ -473,11 +471,15 @@ function renderMenu() {
         ? "text-xs sm:text-sm text-stone-600 mt-1.5 line-clamp-2 leading-relaxed"
         : "text-xs sm:text-sm text-stone-400 mt-1.5 line-clamp-2 leading-relaxed";
 
-      const btnClasses = available
+      const addBtnClasses = available
         ? light
-          ? "bg-stone-900 hover:bg-amber-700 text-white cursor-pointer"
-          : "bg-stone-900 hover:bg-amber-500 text-amber-300 hover:text-stone-950 border border-amber-500/30 cursor-pointer"
-        : "bg-stone-200 text-stone-400 cursor-not-allowed";
+          ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 transition cursor-pointer"
+          : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 transition cursor-pointer"
+        : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
+
+      const orderNowClasses = available
+        ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-amber-500 hover:bg-amber-400 text-stone-950 transition cursor-pointer"
+        : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
 
       return `
         <article class="${cardClasses}">
@@ -516,10 +518,14 @@ function renderMenu() {
               <p class="${descClasses}">${item.description}</p>
             </div>
 
-            <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"}
-              class="w-full py-3 px-4 rounded-full text-xs uppercase tracking-[0.16em] font-bold transition ${btnClasses}">
-              ${available ? "+ Add to Order" : "Currently Unavailable"}
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"} class="${addBtnClasses}">
+                ${available ? "+ Add to Cart" : "Unavailable"}
+              </button>
+              <button type="button" data-order-now="${item.id}" ${available ? "" : "disabled"} class="${orderNowClasses}">
+                ${available ? "Order Now" : "Sold Out"}
+              </button>
+            </div>
           </div>
         </article>
       `;
@@ -527,27 +533,43 @@ function renderMenu() {
     .join("");
 }
 
-function renderCart() {
-  const { cart, subtotal, deliveryFee, total, estDeliveryMins, itemCount } =
-    Store.getCartSummary();
+function renderDrawer() {
+  const fullCartSummary = Store.getCartSummary();
+  const isDirectSingle = Boolean(directOrderItem);
+  const activeSummary = isDirectSingle
+    ? Store.computeSummaryForItems([directOrderItem])
+    : fullCartSummary;
 
-  els.cartCountBadge.textContent = itemCount;
+  els.cartCountBadge.textContent = fullCartSummary.itemCount;
+  els.drawerHeading.textContent = isDirectSingle
+    ? "Order This Dish"
+    : "Your Cart";
+
+  if (isDirectSingle && fullCartSummary.itemCount > 0) {
+    els.showFullCartBtn.classList.remove("hidden");
+    els.directShowCartCount.textContent = fullCartSummary.itemCount;
+  } else {
+    els.showFullCartBtn.classList.add("hidden");
+  }
+
   els.cartEtaText.textContent =
-    cart.length > 0
-      ? `Est. delivery time: ~${estDeliveryMins} mins`
+    activeSummary.items.length > 0
+      ? `Est. delivery time: ~${activeSummary.estDeliveryMins} mins`
       : "Add items to see delivery estimate";
 
-  els.cartSubtotal.textContent = formatPrice(subtotal);
-  els.cartDeliveryFee.textContent = formatPrice(deliveryFee);
-  els.cartGrandTotal.textContent = formatPrice(total);
-  els.placeOrderBtn.disabled = cart.length === 0;
+  els.cartSubtotal.textContent = formatPrice(activeSummary.subtotal);
+  els.cartDeliveryFee.textContent = formatPrice(activeSummary.deliveryFee);
+  els.cartGrandTotal.textContent = formatPrice(activeSummary.total);
+  els.placeOrderBtn.disabled = activeSummary.items.length === 0;
 
-  // Mobile floating bar sync
-  els.mobileCartCount.textContent = itemCount;
-  els.mobileCartTotal.textContent = formatPrice(total);
-  els.mobileOrderBar.classList.toggle("hidden", itemCount === 0);
+  els.mobileCartCount.textContent = fullCartSummary.itemCount;
+  els.mobileCartTotal.textContent = formatPrice(fullCartSummary.total);
+  els.mobileOrderBar.classList.toggle(
+    "hidden",
+    fullCartSummary.itemCount === 0,
+  );
 
-  if (cart.length === 0) {
+  if (activeSummary.items.length === 0) {
     els.cartItemsContainer.innerHTML = `
       <div class="py-8 text-center text-stone-500 text-sm">
         Your cart is empty. Pick a dish from the menu to get started.
@@ -556,7 +578,7 @@ function renderCart() {
     return;
   }
 
-  els.cartItemsContainer.innerHTML = cart
+  els.cartItemsContainer.innerHTML = activeSummary.items
     .map(
       (item) => `
       <div class="flex items-center justify-between gap-3 pb-4 border-b border-stone-100">
@@ -581,7 +603,11 @@ function renderCart() {
     .join("");
 }
 
-function openCart() {
+function openDrawer({ singleProduct = null } = {}) {
+  directOrderItem = singleProduct
+    ? Store.buildLineItemFromProduct(singleProduct, 1)
+    : null;
+  renderDrawer();
   els.cartBackdrop.classList.remove("hidden");
   els.cartDrawer.classList.remove("translate-x-full");
   setTimeout(() => {
@@ -589,9 +615,12 @@ function openCart() {
   }, 260);
 }
 
-function closeCart() {
+function closeDrawer() {
   els.cartDrawer.classList.add("translate-x-full");
-  setTimeout(() => els.cartBackdrop.classList.add("hidden"), 250);
+  setTimeout(() => {
+    els.cartBackdrop.classList.add("hidden");
+    directOrderItem = null;
+  }, 250);
 }
 
 function openProfile() {
@@ -620,10 +649,18 @@ els.mobileSignupLink.addEventListener("click", (e) => {
   }
 });
 
-els.openCartBtn.addEventListener("click", openCart);
-els.mobileOpenCartBtn.addEventListener("click", openCart);
-els.closeCartBtn.addEventListener("click", closeCart);
-els.cartBackdrop.addEventListener("click", closeCart);
+els.openCartBtn.addEventListener("click", () =>
+  openDrawer({ singleProduct: null }),
+);
+els.mobileOpenCartBtn.addEventListener("click", () =>
+  openDrawer({ singleProduct: null }),
+);
+els.showFullCartBtn.addEventListener("click", () => {
+  directOrderItem = null;
+  renderDrawer();
+});
+els.closeCartBtn.addEventListener("click", closeDrawer);
+els.cartBackdrop.addEventListener("click", closeDrawer);
 
 els.userProfileBtn.addEventListener("click", openProfile);
 els.closeProfileBtn.addEventListener("click", closeProfile);
@@ -669,19 +706,40 @@ els.menuSearchInput.addEventListener("input", (e) => {
 
 els.menuGrid.addEventListener("click", (e) => {
   const addBtn = e.target.closest("[data-add-to-cart]");
-  if (!addBtn) return;
-  const added = Store.addToCart(addBtn.dataset.addToCart);
-  if (added) {
-    renderCart();
-    openCart();
+  if (addBtn) {
+    const added = Store.addToCart(addBtn.dataset.addToCart);
+    if (added) {
+      directOrderItem = null;
+      renderDrawer();
+    }
+    return;
+  }
+
+  const orderNowBtn = e.target.closest("[data-order-now]");
+  if (orderNowBtn) {
+    const product = Store.getMenu().find(
+      (m) => m.id === orderNowBtn.dataset.orderNow,
+    );
+    if (product && product.inStock) {
+      openDrawer({ singleProduct: product });
+    }
   }
 });
 
 els.cartItemsContainer.addEventListener("click", (e) => {
   const qtyBtn = e.target.closest("[data-qty-delta]");
   if (!qtyBtn) return;
-  Store.updateCartQty(qtyBtn.dataset.itemId, Number(qtyBtn.dataset.qtyDelta));
-  renderCart();
+  const delta = Number(qtyBtn.dataset.qtyDelta);
+  const itemId = qtyBtn.dataset.itemId;
+
+  if (directOrderItem && directOrderItem.id === itemId) {
+    const nextQty = directOrderItem.qty + delta;
+    directOrderItem = nextQty > 0 ? { ...directOrderItem, qty: nextQty } : null;
+    renderDrawer();
+  } else {
+    Store.updateCartQty(itemId, delta);
+    renderDrawer();
+  }
 });
 
 els.checkoutForm.addEventListener("submit", async (e) => {
@@ -709,6 +767,8 @@ els.checkoutForm.addEventListener("submit", async (e) => {
   if (!addrCheck.ok) return alert(addrCheck.msg);
 
   const currentUser = Auth.getCurrentUser();
+  const isDirectSingle = Boolean(directOrderItem);
+
   const order = await Store.createOrder({
     customerName: nameCheck.value,
     phone: phoneCheck.value,
@@ -716,10 +776,13 @@ els.checkoutForm.addEventListener("submit", async (e) => {
     coords: selectedCoords,
     notes: document.getElementById("custNotes").value.trim(),
     userEmail: currentUser ? currentUser.email : "",
+    customItems: isDirectSingle ? [directOrderItem] : null,
+    clearMainCart: !isDirectSingle,
   });
 
   if (!order) return;
 
+  directOrderItem = null;
   const waUrl = Store.buildWhatsAppURL(order);
   window.open(waUrl, "_blank", "noopener,noreferrer");
 
@@ -730,7 +793,7 @@ els.checkoutForm.addEventListener("submit", async (e) => {
   els.checkoutForm.reset();
 
   renderBrand();
-  renderCart();
+  renderDrawer();
 });
 
 function refreshAll() {
@@ -738,7 +801,7 @@ function refreshAll() {
   renderBrand();
   renderCategories();
   renderMenu();
-  renderCart();
+  renderDrawer();
 }
 
 window.addEventListener("storage", refreshAll);
