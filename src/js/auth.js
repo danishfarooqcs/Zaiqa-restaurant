@@ -6,9 +6,8 @@ const CURRENT_USER_KEY = "restro_current_user_v1";
 const ADMIN_AUTH_KEY = "restro_admin_auth_v1";
 const CODE_KEY = "restro_otp_codes_v1";
 
-// Optional EmailJS config (fill these if you create a free account at emailjs.com)
+// Paste your real EmailJS credentials here
 const EMAILJS_CONFIG = {
-  enabled: false,
   publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
   serviceId: "YOUR_EMAILJS_SERVICE_ID",
   templateId: "YOUR_EMAILJS_TEMPLATE_ID",
@@ -70,44 +69,74 @@ export const Auth = {
     const check = Validators.validateEmail(targetEmail);
     if (!check.ok) return { ok: false, msg: check.msg };
 
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    const codes = getCodes();
-    codes[`${purpose}:${check.value}`] = {
-      code,
-      expiresAt: Date.now() + 10 * 60 * 1000, // valid for 10 mins
-    };
-    saveCodes(codes);
+    if (
+      !EMAILJS_CONFIG.publicKey ||
+      EMAILJS_CONFIG.publicKey.startsWith("YOUR_")
+    ) {
+      return {
+        ok: false,
+        msg: "EmailJS keys not configured in src/js/auth.js yet.",
+      };
+    }
 
-    if (EMAILJS_CONFIG.enabled) {
-      try {
-        const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            service_id: EMAILJS_CONFIG.serviceId,
-            template_id: EMAILJS_CONFIG.templateId,
-            user_id: EMAILJS_CONFIG.publicKey,
-            template_params: {
-              to_email: check.value,
-              otp_code: code,
-              purpose,
-            },
-          }),
-        });
-        if (!res.ok) throw new Error("EmailJS failed");
-        return { ok: true, msg: `Verification code sent to ${check.value}.` };
-      } catch {
+    // For admin reset, verify email matches admin email before sending
+    if (purpose === "admin-reset") {
+      const admin = this.getAdminAccount();
+      if (check.value !== admin.email.toLowerCase()) {
         return {
-          ok: true,
-          msg: `Demo mode code for ${check.value}: ${code} (configure EmailJS for live inbox delivery).`,
+          ok: false,
+          msg: "Email does not match the registered Admin account.",
         };
       }
     }
 
-    return {
-      ok: true,
-      msg: `Code generated for ${check.value}: ${code} (enable EmailJS in auth.js to send real emails).`,
-    };
+    // For user reset, verify user exists before sending
+    if (purpose === "user-reset") {
+      const exists = getUsers().some((u) => u.email === check.value);
+      if (!exists) {
+        return { ok: false, msg: "No customer account found with this email." };
+      }
+    }
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+
+    try {
+      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_id: EMAILJS_CONFIG.serviceId,
+          template_id: EMAILJS_CONFIG.templateId,
+          user_id: EMAILJS_CONFIG.publicKey,
+          template_params: {
+            to_email: check.value,
+            otp_code: code,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || "Failed to send email");
+      }
+
+      const codes = getCodes();
+      codes[`${purpose}:${check.value}`] = {
+        code,
+        expiresAt: Date.now() + 10 * 60 * 1000,
+      };
+      saveCodes(codes);
+
+      return {
+        ok: true,
+        msg: `Verification code sent to ${check.value}. Check your inbox/spam.`,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        msg: `Could not send email (${err.message}). Verify your EmailJS Service ID, Template ID, and Public Key.`,
+      };
+    }
   },
 
   verifyCode(targetEmail, code, purpose = "reset") {
@@ -119,10 +148,10 @@ export const Auth = {
     if (!entry)
       return {
         ok: false,
-        msg: "No verification code found. Request a new code first.",
+        msg: 'No code requested for this email. Click "Send Code" first.',
       };
     if (Date.now() > entry.expiresAt)
-      return { ok: false, msg: "Code expired. Request a new code." };
+      return { ok: false, msg: "Code expired. Request a new one." };
     if (entry.code !== String(code || "").trim())
       return { ok: false, msg: "Incorrect verification code." };
     return { ok: true };
@@ -143,10 +172,7 @@ export const Auth = {
       .trim()
       .toLowerCase();
     if (cleanEmail !== admin.email.toLowerCase()) {
-      return {
-        ok: false,
-        msg: `Reset is only allowed for admin email ${admin.email}.`,
-      };
+      return { ok: false, msg: "Email does not match Admin account." };
     }
     const pwCheck = Validators.validatePassword(newPassword);
     if (!pwCheck.ok) return pwCheck;
@@ -159,10 +185,7 @@ export const Auth = {
       JSON.stringify({ email: admin.email, password: pwCheck.value }),
     );
     this.clearCode(cleanEmail, "admin-reset");
-    return {
-      ok: true,
-      msg: "Admin password updated successfully! You can now log in.",
-    };
+    return { ok: true, msg: "Admin password updated! Please log in." };
   },
 
   // --- USER AUTH ---
@@ -183,8 +206,7 @@ export const Auth = {
     if (!pwCheck.ok) return pwCheck;
 
     const users = getUsers();
-    const exists = users.some((u) => u.email === emailCheck.value);
-    if (exists) {
+    if (users.some((u) => u.email === emailCheck.value)) {
       return {
         ok: false,
         msg: "This email is already registered. Please log in instead.",
@@ -210,17 +232,14 @@ export const Auth = {
     const emailCheck = Validators.validateEmail(email);
     if (!emailCheck.ok) return emailCheck;
 
-    const users = getUsers();
-    const user = users.find((u) => u.email === emailCheck.value);
-    if (!user) {
+    const user = getUsers().find((u) => u.email === emailCheck.value);
+    if (!user)
       return {
         ok: false,
-        msg: "No account found with this email. Please sign up first.",
+        msg: "No account found with this email. Please sign up.",
       };
-    }
-    if (user.password !== password) {
+    if (user.password !== password)
       return { ok: false, msg: "Incorrect password." };
-    }
 
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
     return { ok: true, user };
@@ -235,9 +254,8 @@ export const Auth = {
 
     const users = getUsers();
     const idx = users.findIndex((u) => u.email === emailCheck.value);
-    if (idx === -1) {
+    if (idx === -1)
       return { ok: false, msg: "No user account found with that email." };
-    }
 
     const codeCheck = this.verifyCode(emailCheck.value, code, "user-reset");
     if (!codeCheck.ok) return codeCheck;
