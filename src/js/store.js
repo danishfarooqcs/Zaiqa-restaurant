@@ -9,7 +9,7 @@ import {
   onValue,
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-// Replace with YOUR config from Firebase Console -> Project Settings -> Web App
+//  EXISTING FIREBASE CONFIG HERE
 const firebaseConfig = {
   apiKey: "AIzaSyA973T6GYQl9yk4IUozCbmfSfhRZaPot5Q",
   authDomain: "zaiqa-restaurant-system.firebaseapp.com",
@@ -21,6 +21,7 @@ const firebaseConfig = {
   appId: "1:160246151392:web:172cfd056b22f9fa717885",
   measurementId: "G-20H0SPY3Z7",
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -30,7 +31,7 @@ const LAST_ORDER_KEY = "restro_last_order_id";
 const DEFAULT_SETTINGS = {
   restaurantName: "Zaiqa Royal Kitchen",
   whatsappNumber: "923001234567",
-  deliveryFee: 150,
+  deliveryPercent: 5,
   baseDeliveryMins: 25,
   adminPin: "admin123",
 };
@@ -41,6 +42,8 @@ const DEFAULT_MENU = {
     name: "Smoked Charcoal Seekh Kebab",
     category: "Starters",
     price: 850,
+    offPercent: 10,
+    spiceLevel: "Medium",
     prepTime: 15,
     inStock: true,
     featured: true,
@@ -54,6 +57,8 @@ const DEFAULT_MENU = {
     name: "Saffron Butter Chicken Karahi",
     category: "Mains",
     price: 1650,
+    offPercent: 0,
+    spiceLevel: "Mild",
     prepTime: 25,
     inStock: true,
     featured: true,
@@ -67,6 +72,8 @@ const DEFAULT_MENU = {
     name: "Mutton Dum Biryani (Special)",
     category: "Mains",
     price: 1450,
+    offPercent: 15,
+    spiceLevel: "Spicy",
     prepTime: 20,
     inStock: true,
     featured: true,
@@ -77,7 +84,6 @@ const DEFAULT_MENU = {
   },
 };
 
-// Local reactive cache kept in sync with Firebase Realtime Database
 const state = {
   menu: [],
   orders: [],
@@ -87,6 +93,12 @@ const state = {
 
 function notify() {
   window.dispatchEvent(new Event("restro:updated"));
+}
+
+export function getEffectivePrice(item) {
+  const base = Number(item.price || 0);
+  const off = Math.min(90, Math.max(0, Number(item.offPercent || 0)));
+  return Math.round(base * (1 - off / 100));
 }
 
 function startRealtimeListeners() {
@@ -134,7 +146,6 @@ export const Store = {
     }
   },
 
-  // --- SETTINGS ---
   getSettings() {
     this.init();
     return state.settings;
@@ -149,7 +160,6 @@ export const Store = {
     return updated;
   },
 
-  // --- MENU CRUD ---
   getMenu() {
     this.init();
     return state.menu;
@@ -163,6 +173,8 @@ export const Store = {
       name: item.name,
       category: item.category,
       price: Number(item.price),
+      offPercent: Math.min(90, Math.max(0, Number(item.offPercent) || 0)),
+      spiceLevel: item.spiceLevel || "Regular",
       prepTime: Number(item.prepTime) || 15,
       inStock: item.inStock !== false,
       featured: Boolean(item.featured),
@@ -188,7 +200,6 @@ export const Store = {
     notify();
   },
 
-  // --- CART (Local per device) ---
   getCart() {
     this.init();
     const rawCart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
@@ -201,7 +212,9 @@ export const Store = {
         return {
           ...cartItem,
           name: liveItem.name,
-          price: liveItem.price,
+          price: getEffectivePrice(liveItem),
+          originalPrice: liveItem.price,
+          offPercent: liveItem.offPercent || 0,
           prepTime: liveItem.prepTime,
           image: liveItem.image,
         };
@@ -226,7 +239,9 @@ export const Store = {
       cart.push({
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: getEffectivePrice(product),
+        originalPrice: product.price,
+        offPercent: product.offPercent || 0,
         prepTime: product.prepTime,
         image: product.image,
         qty: 1,
@@ -256,21 +271,29 @@ export const Store = {
     const cart = this.getCart();
     const settings = this.getSettings();
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-    const deliveryFee = cart.length > 0 ? Number(settings.deliveryFee) : 0;
+    // 5% delivery charges of total subtotal
+    const deliveryFee = cart.length > 0 ? Math.round(subtotal * 0.05) : 0;
     const total = subtotal + deliveryFee;
     const maxPrep =
       cart.length > 0 ? Math.max(...cart.map((i) => i.prepTime || 15)) : 0;
     const estDeliveryMins =
-      cart.length > 0 ? maxPrep + Number(settings.baseDeliveryMins) : 0;
+      cart.length > 0 ? maxPrep + Number(settings.baseDeliveryMins || 25) : 0;
     const itemCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
     return { cart, subtotal, deliveryFee, total, estDeliveryMins, itemCount };
   },
 
-  // --- ORDERS & LIVE TRACKING ---
   getOrders() {
     this.init();
     return state.orders;
+  },
+
+  getOrdersByUserEmail(email) {
+    if (!email) return [];
+    const clean = email.trim().toLowerCase();
+    return this.getOrders().filter(
+      (o) => String(o.userEmail || "").toLowerCase() === clean,
+    );
   },
 
   getOrderById(orderId) {
@@ -279,7 +302,14 @@ export const Store = {
     );
   },
 
-  async createOrder({ customerName, phone, address, notes }) {
+  async createOrder({
+    customerName,
+    phone,
+    address,
+    coords,
+    notes,
+    userEmail,
+  }) {
     this.init();
     const summary = this.getCartSummary();
     if (summary.cart.length === 0) return null;
@@ -290,7 +320,9 @@ export const Store = {
       customerName,
       phone,
       address,
+      coords: coords || null,
       notes: notes || "",
+      userEmail: userEmail || "",
       items: summary.cart,
       subtotal: summary.subtotal,
       deliveryFee: summary.deliveryFee,
@@ -321,6 +353,9 @@ export const Store = {
     const itemsList = order.items
       .map((i) => `• ${i.qty}x ${i.name} (Rs. ${i.price * i.qty})`)
       .join("\n");
+    const pinLink = order.coords
+      ? `\n*Map Pin:* https://maps.google.com/?q=${order.coords.lat},${order.coords.lng}`
+      : "";
 
     const message =
       `*NEW ORDER - ${settings.restaurantName}*\n` +
@@ -328,13 +363,13 @@ export const Store = {
       `--------------------------\n` +
       `*Customer:* ${order.customerName}\n` +
       `*Phone:* ${order.phone}\n` +
-      `*Address:* ${order.address}\n` +
+      `*Address:* ${order.address}${pinLink}\n` +
       (order.notes ? `*Notes:* ${order.notes}\n` : "") +
       `--------------------------\n` +
       `*Items Ordered:*\n${itemsList}\n` +
       `--------------------------\n` +
       `Subtotal: Rs. ${order.subtotal}\n` +
-      `Delivery Fee: Rs. ${order.deliveryFee}\n` +
+      `Delivery Fee (5%): Rs. ${order.deliveryFee}\n` +
       `*Grand Total: Rs. ${order.total}*\n` +
       `Est. Delivery: ~${order.estDeliveryMins} mins`;
 

@@ -1,5 +1,5 @@
 // src/js/admin.js
-import { Store } from "./store.js";
+import { Store, getEffectivePrice } from "./store.js";
 import { Auth } from "./auth.js";
 
 if (!Auth.isAdminLoggedIn()) {
@@ -41,10 +41,34 @@ function formatPrice(amount) {
   return `Rs. ${Number(amount || 0).toLocaleString()}`;
 }
 
+// Resize & compress uploaded computer image so it saves cleanly to Firebase
+function compressUploadedImage(file, maxWidth = 700, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function resetDishFormMode() {
   els.editingDishId.value = "";
   els.dishForm.reset();
   document.getElementById("dishPrep").value = 15;
+  document.getElementById("dishOffPercent").value = 0;
   document.getElementById("dishInStock").checked = true;
   els.dishFormHeading.textContent = "Add New Menu Product";
   els.dishSubmitBtn.textContent = "+ Add Product to Live Menu";
@@ -56,10 +80,13 @@ function startEditingDish(dish) {
   document.getElementById("dishName").value = dish.name;
   document.getElementById("dishCategory").value = dish.category;
   document.getElementById("dishPrice").value = dish.price;
+  document.getElementById("dishOffPercent").value = dish.offPercent || 0;
   document.getElementById("dishPrep").value = dish.prepTime || 15;
+  document.getElementById("dishSpice").value = dish.spiceLevel || "Regular";
   document.getElementById("dishFeatured").checked = Boolean(dish.featured);
   document.getElementById("dishInStock").checked = dish.inStock !== false;
-  document.getElementById("dishImage").value = dish.image || "";
+  document.getElementById("dishImage").value =
+    dish.image && !dish.image.startsWith("data:") ? dish.image : "";
   document.getElementById("dishDesc").value = dish.description || "";
 
   els.dishFormHeading.textContent = `Editing: ${dish.name}`;
@@ -122,8 +149,10 @@ function renderAll() {
   }
 
   els.adminMenuTable.innerHTML = menu
-    .map(
-      (item) => `
+    .map((item) => {
+      const off = Number(item.offPercent || 0);
+      const finalPrice = getEffectivePrice(item);
+      return `
       <tr class="hover:bg-stone-800/40">
         <td class="py-3 px-4">
           <div class="flex items-center gap-3">
@@ -131,41 +160,45 @@ function renderAll() {
             <div>
               <p class="font-semibold text-white">${item.name}</p>
               <p class="text-xs text-stone-400 line-clamp-1 max-w-xs">${item.description || ""}</p>
-              ${item.featured ? '<span class="text-[11px] text-amber-400">★ Featured</span>' : ""}
+              <div class="flex items-center gap-2 mt-0.5">
+                ${item.featured ? '<span class="text-[11px] text-amber-400">★ Featured</span>' : ""}
+                ${item.spiceLevel ? `<span class="text-[11px] text-stone-400">• ${item.spiceLevel}</span>` : ""}
+              </div>
             </div>
           </div>
         </td>
         <td class="py-3 px-4 text-stone-300">${item.category}</td>
-        <td class="py-3 px-4 font-medium text-amber-400">${formatPrice(item.price)}</td>
+        <td class="py-3 px-4">
+          <span class="font-medium text-amber-400">${formatPrice(finalPrice)}</span>
+          ${
+            off > 0
+              ? `<div class="text-[11px] text-emerald-400"><span class="line-through text-stone-500 mr-1">${formatPrice(item.price)}</span>${off}% OFF</div>`
+              : ""
+          }
+        </td>
         <td class="py-3 px-4 text-stone-400">${item.prepTime}m</td>
         <td class="py-3 px-4">
-          <button
-            data-toggle-stock="${item.id}"
+          <button data-toggle-stock="${item.id}"
             class="px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer ${
               item.inStock
                 ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                 : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-            }"
-          >
+            }">
             ${item.inStock ? "In Stock" : "Out of Stock"}
           </button>
         </td>
         <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
-          <button
-            data-edit-dish="${item.id}"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 cursor-pointer"
-          >
+          <button data-edit-dish="${item.id}"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 cursor-pointer">
             Edit
           </button>
-          <button
-            data-delete-dish="${item.id}"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-600/20 hover:bg-rose-600/35 text-rose-300 cursor-pointer"
-          >
+          <button data-delete-dish="${item.id}"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-600/20 hover:bg-rose-600/35 text-rose-300 cursor-pointer">
             Delete
           </button>
         </td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join("");
 
   if (orders.length === 0) {
@@ -187,10 +220,8 @@ function renderAll() {
 
             <div class="flex items-center gap-3">
               <label class="text-xs text-stone-400">Status:</label>
-              <select
-                data-order-status="${order.orderId}"
-                class="px-3 py-2 rounded-xl bg-stone-950 border border-stone-700 text-xs font-semibold text-white focus:border-amber-500 focus:outline-none"
-              >
+              <select data-order-status="${order.orderId}"
+                class="px-3 py-2 rounded-xl bg-stone-950 border border-stone-700 text-xs font-semibold text-white focus:border-amber-500 focus:outline-none">
                 ${STATUSES.map(
                   (st) =>
                     `<option value="${st}" ${order.status === st ? "selected" : ""}>${st}</option>`,
@@ -209,7 +240,7 @@ function renderAll() {
               )
               .join("")}
             <div class="pt-2 mt-2 border-t border-stone-800 flex justify-between font-bold text-white">
-              <span>Total (incl. ${formatPrice(order.deliveryFee)} delivery)</span>
+              <span>Total (incl. 5% delivery: ${formatPrice(order.deliveryFee)})</span>
               <span class="text-amber-400">${formatPrice(order.total)}</span>
             </div>
           </div>
@@ -220,11 +251,9 @@ function renderAll() {
 
   document.getElementById("setBrandName").value = settings.restaurantName;
   document.getElementById("setWhatsapp").value = settings.whatsappNumber;
-  document.getElementById("setDeliveryFee").value = settings.deliveryFee;
   document.getElementById("setBaseMins").value = settings.baseDeliveryMins;
 }
 
-// Tab switching
 els.tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     const target = tab.dataset.tab;
@@ -241,23 +270,42 @@ els.tabs.forEach((tab) => {
   });
 });
 
-// Add OR Update menu item
 els.dishForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const editId = els.editingDishId.value;
+  const existingDish = editId
+    ? Store.getMenu().find((m) => m.id === editId)
+    : null;
+
+  const fileInput = document.getElementById("dishFile");
+  const urlInput = document.getElementById("dishImage").value.trim();
+
+  let imageSrc =
+    urlInput ||
+    (existingDish
+      ? existingDish.image
+      : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80");
+
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    imageSrc = await compressUploadedImage(fileInput.files[0]);
+  }
+
   const payload = {
     name: document.getElementById("dishName").value.trim(),
     category: document.getElementById("dishCategory").value,
     price: Number(document.getElementById("dishPrice").value),
+    offPercent: Math.min(
+      90,
+      Math.max(0, Number(document.getElementById("dishOffPercent").value) || 0),
+    ),
+    spiceLevel: document.getElementById("dishSpice").value,
     prepTime: Number(document.getElementById("dishPrep").value) || 15,
     featured: document.getElementById("dishFeatured").checked,
     inStock: document.getElementById("dishInStock").checked,
-    image:
-      document.getElementById("dishImage").value.trim() ||
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+    image: imageSrc,
     description: document.getElementById("dishDesc").value.trim(),
   };
 
-  const editId = els.editingDishId.value;
   if (editId) {
     await Store.updateMenuItem(editId, payload);
   } else {
@@ -270,7 +318,6 @@ els.dishForm.addEventListener("submit", async (e) => {
 
 els.cancelEditBtn.addEventListener("click", resetDishFormMode);
 
-// Edit, Stock toggle & Delete dish
 els.adminMenuTable.addEventListener("click", async (e) => {
   const editBtn = e.target.closest("[data-edit-dish]");
   if (editBtn) {
@@ -299,7 +346,6 @@ els.adminMenuTable.addEventListener("click", async (e) => {
   }
 });
 
-// Order status update
 els.adminOrdersContainer.addEventListener("change", async (e) => {
   const select = e.target.closest("[data-order-status]");
   if (select) {
@@ -308,13 +354,11 @@ els.adminOrdersContainer.addEventListener("change", async (e) => {
   }
 });
 
-// Settings save
 els.settingsForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   await Store.updateSettings({
     restaurantName: document.getElementById("setBrandName").value.trim(),
     whatsappNumber: document.getElementById("setWhatsapp").value.trim(),
-    deliveryFee: Number(document.getElementById("setDeliveryFee").value),
     baseDeliveryMins: Number(document.getElementById("setBaseMins").value),
   });
   els.settingsSavedMsg.classList.remove("hidden");
@@ -322,14 +366,12 @@ els.settingsForm.addEventListener("submit", async (e) => {
   renderAll();
 });
 
-// Reset demo data
 els.resetDemoBtn.addEventListener("click", async () => {
   await Store.resetAllData();
   resetDishFormMode();
   renderAll();
 });
 
-// Logout
 els.logoutBtn.addEventListener("click", () => {
   Auth.logoutAdmin();
   window.location.href = "./login.html";

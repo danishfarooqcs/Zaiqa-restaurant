@@ -49,7 +49,7 @@
             data-mode="forgot"
             class="mode-btn py-2 rounded-lg text-stone-600 cursor-pointer"
           >
-            Forgot PW
+            Forgot Password
           </button>
         </div>
 
@@ -199,21 +199,33 @@
         );
       }
 
-      modeBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const mode = btn.dataset.mode;
+      function setMode(mode, clearMessage = true) {
+        const activeMode = panels[mode] ? mode : "login";
+        if (clearMessage) {
           feedback.classList.add("hidden");
-          modeBtns.forEach((b) => {
-            b.classList.toggle("bg-white", b === btn);
-            b.classList.toggle("text-stone-900", b === btn);
-            b.classList.toggle("shadow-xs", b === btn);
-            b.classList.toggle("text-stone-600", b !== btn);
-          });
-          Object.entries(panels).forEach(([key, form]) => {
-            form.classList.toggle("hidden", key !== mode);
-          });
+        }
+        modeBtns.forEach((btn) => {
+          const isTarget = btn.dataset.mode === activeMode;
+          btn.classList.toggle("bg-white", isTarget);
+          btn.classList.toggle("text-stone-900", isTarget);
+          btn.classList.toggle("shadow-xs", isTarget);
+          btn.classList.toggle("text-stone-600", !isTarget);
         });
+        Object.entries(panels).forEach(([key, form]) => {
+          form.classList.toggle("hidden", key !== activeMode);
+        });
+      }
+
+      modeBtns.forEach((btn) => {
+        btn.addEventListener("click", () => setMode(btn.dataset.mode, true));
       });
+
+      const initialMode = new URLSearchParams(window.location.search).get(
+        "mode",
+      );
+      if (initialMode) {
+        setMode(initialMode, true);
+      }
 
       document
         .getElementById("userLoginForm")
@@ -256,12 +268,26 @@
         .getElementById("userForgotForm")
         .addEventListener("submit", (e) => {
           e.preventDefault();
+          const emailVal = document.getElementById("forgotEmail").value;
           const res = Auth.resetUserPassword(
-            document.getElementById("forgotEmail").value,
+            emailVal,
             document.getElementById("forgotCode").value,
             document.getElementById("forgotNewPassword").value,
           );
           showMsg(res.msg, res.ok);
+          if (res.ok) {
+            document.getElementById("loginEmail").value = emailVal
+              .trim()
+              .toLowerCase();
+            document.getElementById("userForgotForm").reset();
+            setTimeout(() => {
+              setMode("login", false);
+              showMsg(
+                "Password reset complete! Please log in with your new password.",
+                true,
+              );
+            }, 900);
+          }
         });
     </script>
   </body>

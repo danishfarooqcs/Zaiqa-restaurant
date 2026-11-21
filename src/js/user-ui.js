@@ -1,5 +1,5 @@
 // src/js/user-ui.js
-import { Store } from "./store.js";
+import { Store, getEffectivePrice } from "./store.js";
 import { Auth } from "./auth.js";
 import { Validators } from "./validators.js";
 
@@ -14,11 +14,35 @@ const CATEGORIES = [
 let selectedCategory = "All";
 let searchQuery = "";
 
+// Gulgasht Colony, Multan, Punjab, Pakistan
+const GULGASHT_MULTAN = { lat: 30.2225, lng: 71.4718 };
+// Multan city delivery bounding box
+const MULTAN_BOUNDS = {
+  minLat: 30.08,
+  maxLat: 30.33,
+  minLng: 71.33,
+  maxLng: 71.63,
+};
+
+let selectedCoords = { ...GULGASHT_MULTAN };
+let pinInsideMultan = true;
+let checkoutMap = null;
+let checkoutMarker = null;
+
 const els = {
   navBrandName: document.getElementById("navBrandName"),
-  heroTitle: document.getElementById("heroTitle"),
   footerBrandText: document.getElementById("footerBrandText"),
   activeOrderDot: document.getElementById("activeOrderDot"),
+  userProfileBtn: document.getElementById("userProfileBtn"),
+  userAvatarInitial: document.getElementById("userAvatarInitial"),
+  userProfileName: document.getElementById("userProfileName"),
+  guestAuthButtons: document.getElementById("guestAuthButtons"),
+  profileBackdrop: document.getElementById("profileBackdrop"),
+  profileDrawer: document.getElementById("profileDrawer"),
+  closeProfileBtn: document.getElementById("closeProfileBtn"),
+  profileDetailsCard: document.getElementById("profileDetailsCard"),
+  userOrdersList: document.getElementById("userOrdersList"),
+  userLogoutBtn: document.getElementById("userLogoutBtn"),
   openCartBtn: document.getElementById("openCartBtn"),
   closeCartBtn: document.getElementById("closeCartBtn"),
   cartBackdrop: document.getElementById("cartBackdrop"),
@@ -31,6 +55,8 @@ const els = {
   cartGrandTotal: document.getElementById("cartGrandTotal"),
   checkoutForm: document.getElementById("checkoutForm"),
   placeOrderBtn: document.getElementById("placeOrderBtn"),
+  pinLocationStatus: document.getElementById("pinLocationStatus"),
+  useMyGpsBtn: document.getElementById("useMyGpsBtn"),
   orderSuccessBox: document.getElementById("orderSuccessBox"),
   orderSuccessDetails: document.getElementById("orderSuccessDetails"),
   whatsappConfirmLink: document.getElementById("whatsappConfirmLink"),
@@ -44,12 +70,161 @@ function formatPrice(amount) {
   return `Rs. ${Number(amount || 0).toLocaleString()}`;
 }
 
-// 1. INSIDE renderBrand()
+function isWithinMultanBounds(lat, lng) {
+  return (
+    lat >= MULTAN_BOUNDS.minLat &&
+    lat <= MULTAN_BOUNDS.maxLat &&
+    lng >= MULTAN_BOUNDS.minLng &&
+    lng <= MULTAN_BOUNDS.maxLng
+  );
+}
+
+async function detectAddressFromPin(lat, lng) {
+  selectedCoords = { lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) };
+  const inBounds = isWithinMultanBounds(lat, lng);
+
+  if (!inBounds) {
+    pinInsideMultan = false;
+    els.pinLocationStatus.textContent =
+      "✕ Outside Multan! Delivery is only available inside Multan, Punjab, Pakistan.";
+    els.pinLocationStatus.className = "text-[11px] text-rose-600 font-semibold";
+    return;
+  }
+
+  pinInsideMultan = true;
+  els.pinLocationStatus.textContent = "Detecting exact Multan street/area...";
+  els.pinLocationStatus.className = "text-[11px] text-amber-700 font-medium";
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+    );
+    const data = await res.json();
+    const display = data.display_name || "";
+
+    if (display && !/multan/i.test(display) && !inBounds) {
+      pinInsideMultan = false;
+      els.pinLocationStatus.textContent =
+        "✕ Outside Multan! Move the pin inside Multan, Punjab, Pakistan.";
+      els.pinLocationStatus.className =
+        "text-[11px] text-rose-600 font-semibold";
+      return;
+    }
+
+    const cleanAddress = display
+      ? display.split(",").slice(0, 4).join(", ")
+      : `Near (${selectedCoords.lat}, ${selectedCoords.lng}), Multan, Punjab, Pakistan`;
+
+    document.getElementById("custAddress").value = cleanAddress;
+    els.pinLocationStatus.textContent = `✓ Multan Location Detected: ${cleanAddress}`;
+    els.pinLocationStatus.className =
+      "text-[11px] text-emerald-700 font-medium";
+  } catch {
+    const fallback = `Pin (${selectedCoords.lat}, ${selectedCoords.lng}), Multan, Punjab, Pakistan`;
+    if (!document.getElementById("custAddress").value) {
+      document.getElementById("custAddress").value = fallback;
+    }
+    els.pinLocationStatus.textContent = `✓ Pinned in Multan (${selectedCoords.lat}, ${selectedCoords.lng})`;
+    els.pinLocationStatus.className =
+      "text-[11px] text-emerald-700 font-medium";
+  }
+}
+
+function initMaps() {
+  if (typeof window.L === "undefined") return;
+
+  // 1. Bottom Store Map (Gulgasht Colony, Multan, Punjab, Pakistan)
+  const storeMapEl = document.getElementById("storeLocationMap");
+  if (storeMapEl && !storeMapEl.dataset.ready) {
+    storeMapEl.dataset.ready = "true";
+    const storeMap = window.L.map("storeLocationMap").setView(
+      [GULGASHT_MULTAN.lat, GULGASHT_MULTAN.lng],
+      15,
+    );
+    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap",
+    }).addTo(storeMap);
+
+    window.L.marker([GULGASHT_MULTAN.lat, GULGASHT_MULTAN.lng])
+      .addTo(storeMap)
+      .bindPopup(
+        "<strong>Zaiqa Royal Kitchen</strong><br>Gulgasht Colony, Multan, Punjab, Pakistan",
+      )
+      .openPopup();
+  }
+
+  // 2. Checkout Draggable Pin Map
+  const pinMapEl = document.getElementById("checkoutPinMap");
+  if (pinMapEl && !checkoutMap) {
+    checkoutMap = window.L.map("checkoutPinMap").setView(
+      [GULGASHT_MULTAN.lat, GULGASHT_MULTAN.lng],
+      13,
+    );
+    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap",
+    }).addTo(checkoutMap);
+
+    checkoutMarker = window.L.marker(
+      [GULGASHT_MULTAN.lat, GULGASHT_MULTAN.lng],
+      {
+        draggable: true,
+      },
+    ).addTo(checkoutMap);
+
+    checkoutMarker.on("dragend", () => {
+      const pos = checkoutMarker.getLatLng();
+      detectAddressFromPin(pos.lat, pos.lng);
+    });
+
+    checkoutMap.on("click", (e) => {
+      checkoutMarker.setLatLng(e.latlng);
+      detectAddressFromPin(e.latlng.lat, e.latlng.lng);
+    });
+  }
+}
+
+function renderProfileDrawer() {
+  const user = Auth.getCurrentUser();
+  if (!user) return;
+
+  els.profileDetailsCard.innerHTML = `
+    <p class="font-bold text-base text-stone-900">${user.name}</p>
+    <p class="text-xs text-stone-600"><span class="font-semibold">Email:</span> ${user.email}</p>
+    <p class="text-xs text-stone-600"><span class="font-semibold">Phone:</span> ${user.phone}</p>
+    <p class="text-xs text-stone-600"><span class="font-semibold">Saved Address:</span> ${user.address}</p>
+  `;
+
+  const myOrders = Store.getOrdersByUserEmail(user.email);
+  if (myOrders.length === 0) {
+    els.userOrdersList.innerHTML = `<p class="text-xs text-stone-500 bg-stone-50 border border-stone-200 rounded-xl p-4">No orders placed under this account yet.</p>`;
+    return;
+  }
+
+  els.userOrdersList.innerHTML = myOrders
+    .map(
+      (o) => `
+      <div class="border border-stone-200 rounded-xl p-3.5 space-y-2 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-amber-700">#${o.orderId}</span>
+          <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-semibold">${o.status}</span>
+        </div>
+        <p class="text-stone-600">${o.items.map((i) => `${i.qty}x ${i.name}`).join(", ")}</p>
+        <div class="flex items-center justify-between pt-1 border-t border-stone-100">
+          <span class="font-bold text-stone-900">${formatPrice(o.total)}</span>
+          <a href="./track-order.html?id=${encodeURIComponent(o.orderId)}" class="text-amber-700 font-semibold hover:underline">
+            Track Live →
+          </a>
+        </div>
+      </div>`,
+    )
+    .join("");
+}
+
 function renderBrand() {
   const settings = Store.getSettings();
   document.title = `${settings.restaurantName} | Order Fresh Online`;
   els.navBrandName.textContent = settings.restaurantName;
-  els.footerBrandText.textContent = `${settings.restaurantName} • Real-Time Menu & Order System`;
+  els.footerBrandText.textContent = `${settings.restaurantName} • Gulgasht Colony, Multan, Punjab, Pakistan`;
 
   const lastOrderId = localStorage.getItem("restro_last_order_id");
   const lastOrder = lastOrderId ? Store.getOrderById(lastOrderId) : null;
@@ -57,21 +232,28 @@ function renderBrand() {
     lastOrder && !["Delivered", "Cancelled"].includes(lastOrder.status);
   els.activeOrderDot.classList.toggle("hidden", !hasActive);
 
-  // Auto-fill logged-in user details if empty & update navbar auth label
   const currentUser = Auth.getCurrentUser();
-  const authLink = document.getElementById("navAuthLink");
-  if (authLink) {
-    authLink.textContent = currentUser
-      ? `Hi, ${currentUser.name.split(" ")[0]}`
-      : "Login / Sign Up";
-  }
   if (currentUser) {
+    els.userProfileBtn.classList.remove("hidden");
+    els.userProfileBtn.classList.add("flex");
+    els.guestAuthButtons.classList.add("hidden");
+    els.userAvatarInitial.textContent = currentUser.name
+      .charAt(0)
+      .toUpperCase();
+    els.userProfileName.textContent = currentUser.name.split(" ")[0];
+
     const nameEl = document.getElementById("custName");
     const phoneEl = document.getElementById("custPhone");
     const addrEl = document.getElementById("custAddress");
     if (nameEl && !nameEl.value) nameEl.value = currentUser.name;
     if (phoneEl && !phoneEl.value) phoneEl.value = currentUser.phone;
     if (addrEl && !addrEl.value) addrEl.value = currentUser.address;
+
+    renderProfileDrawer();
+  } else {
+    els.userProfileBtn.classList.add("hidden");
+    els.userProfileBtn.classList.remove("flex");
+    els.guestAuthButtons.classList.remove("hidden");
   }
 }
 
@@ -79,15 +261,12 @@ function renderCategories() {
   els.categoryFilters.innerHTML = CATEGORIES.map((cat) => {
     const active = selectedCategory === cat;
     return `
-      <button
-        type="button"
-        data-category="${cat}"
+      <button type="button" data-category="${cat}"
         class="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
           active
             ? "bg-amber-600 text-white shadow-sm"
             : "bg-white text-stone-700 border border-stone-200 hover:border-amber-500"
-        }"
-      >
+        }">
         ${cat}
       </button>
     `;
@@ -120,18 +299,22 @@ function renderMenu() {
   els.menuGrid.innerHTML = filtered
     .map((item) => {
       const available = Boolean(item.inStock);
+      const off = Number(item.offPercent || 0);
+      const finalPrice = getEffectivePrice(item);
+
       return `
         <article class="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
           <div class="relative h-48 bg-stone-200">
-            <img
-              src="${item.image}"
-              alt="${item.name}"
-              loading="lazy"
-              class="w-full h-full object-cover ${available ? "" : "grayscale opacity-60"}"
-            />
+            <img src="${item.image}" alt="${item.name}" loading="lazy"
+              class="w-full h-full object-cover ${available ? "" : "grayscale opacity-60"}" />
             <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-900/80 text-amber-300">
               ${item.category}
             </span>
+            ${
+              off > 0 && available
+                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">${off}% OFF</span>`
+                : ""
+            }
             ${
               !available
                 ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white">Out of Stock</span>`
@@ -143,21 +326,24 @@ function renderMenu() {
             <div>
               <div class="flex items-start justify-between gap-2">
                 <h3 class="text-lg font-bold text-stone-900 leading-snug">${item.name}</h3>
-                <span class="text-base font-bold text-amber-700 whitespace-nowrap">${formatPrice(item.price)}</span>
+                <div class="text-right whitespace-nowrap">
+                  <span class="text-base font-bold text-amber-700">${formatPrice(finalPrice)}</span>
+                  ${
+                    off > 0
+                      ? `<span class="block text-xs line-through text-stone-400">${formatPrice(item.price)}</span>`
+                      : ""
+                  }
+                </div>
               </div>
               <p class="text-xs sm:text-sm text-stone-600 mt-1.5 line-clamp-2">${item.description}</p>
             </div>
 
-            <button
-              type="button"
-              data-add-to-cart="${item.id}"
-              ${available ? "" : "disabled"}
+            <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"}
               class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition ${
                 available
                   ? "bg-stone-900 hover:bg-amber-600 text-white cursor-pointer"
                   : "bg-stone-200 text-stone-400 cursor-not-allowed"
-              }"
-            >
+              }">
               ${available ? "+ Add to Cart" : "Currently Unavailable"}
             </button>
           </div>
@@ -184,7 +370,7 @@ function renderCart() {
 
   if (cart.length === 0) {
     els.cartItemsContainer.innerHTML = `
-      <div class="py-12 text-center text-stone-500 text-sm">
+      <div class="py-8 text-center text-stone-500 text-sm">
         Your cart is empty. Pick a dish from the menu to get started.
       </div>
     `;
@@ -204,23 +390,11 @@ function renderCart() {
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            data-qty-delta="-1"
-            data-item-id="${item.id}"
-            class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer"
-          >
-            −
-          </button>
+          <button type="button" data-qty-delta="-1" data-item-id="${item.id}"
+            class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">−</button>
           <span class="w-5 text-center text-sm font-semibold">${item.qty}</span>
-          <button
-            type="button"
-            data-qty-delta="1"
-            data-item-id="${item.id}"
-            class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer"
-          >
-            +
-          </button>
+          <button type="button" data-qty-delta="1" data-item-id="${item.id}"
+            class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">+</button>
         </div>
       </div>
     `,
@@ -231,6 +405,9 @@ function renderCart() {
 function openCart() {
   els.cartBackdrop.classList.remove("hidden");
   els.cartDrawer.classList.remove("translate-x-full");
+  setTimeout(() => {
+    if (checkoutMap) checkoutMap.invalidateSize();
+  }, 260);
 }
 
 function closeCart() {
@@ -238,10 +415,49 @@ function closeCart() {
   setTimeout(() => els.cartBackdrop.classList.add("hidden"), 250);
 }
 
-// Event Listeners
+function openProfile() {
+  renderProfileDrawer();
+  els.profileBackdrop.classList.remove("hidden");
+  els.profileDrawer.classList.remove("-translate-x-full");
+}
+
+function closeProfile() {
+  els.profileDrawer.classList.add("-translate-x-full");
+  setTimeout(() => els.profileBackdrop.classList.add("hidden"), 250);
+}
+
 els.openCartBtn.addEventListener("click", openCart);
 els.closeCartBtn.addEventListener("click", closeCart);
 els.cartBackdrop.addEventListener("click", closeCart);
+
+els.userProfileBtn.addEventListener("click", openProfile);
+els.closeProfileBtn.addEventListener("click", closeProfile);
+els.profileBackdrop.addEventListener("click", closeProfile);
+
+els.userLogoutBtn.addEventListener("click", () => {
+  Auth.logoutUser();
+  closeProfile();
+  renderBrand();
+});
+
+els.useMyGpsBtn.addEventListener("click", () => {
+  if (!navigator.geolocation)
+    return alert("GPS is not supported in this browser.");
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      if (checkoutMap && checkoutMarker) {
+        checkoutMap.setView([latitude, longitude], 15);
+        checkoutMarker.setLatLng([latitude, longitude]);
+      }
+      detectAddressFromPin(latitude, longitude);
+    },
+    () =>
+      alert(
+        "Could not access GPS location. Please drag the pin manually on the Multan map.",
+      ),
+  );
+});
 
 els.categoryFilters.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-category]");
@@ -273,9 +489,14 @@ els.cartItemsContainer.addEventListener("click", (e) => {
   renderCart();
 });
 
-// 2. CHECKOUT FORM SUBMIT WITH VALIDATION
-els.checkoutForm.addEventListener("submit", (e) => {
+els.checkoutForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  if (!pinInsideMultan) {
+    return alert(
+      "Delivery is only available inside Multan, Punjab, Pakistan. Please place the map pin inside Multan.",
+    );
+  }
 
   const nameCheck = Validators.validateName(
     document.getElementById("custName").value,
@@ -292,11 +513,14 @@ els.checkoutForm.addEventListener("submit", (e) => {
   );
   if (!addrCheck.ok) return alert(addrCheck.msg);
 
-  const order = Store.createOrder({
+  const currentUser = Auth.getCurrentUser();
+  const order = await Store.createOrder({
     customerName: nameCheck.value,
     phone: phoneCheck.value,
     address: addrCheck.value,
+    coords: selectedCoords,
     notes: document.getElementById("custNotes").value.trim(),
+    userEmail: currentUser ? currentUser.email : "",
   });
 
   if (!order) return;
@@ -324,4 +548,5 @@ function refreshAll() {
 window.addEventListener("storage", refreshAll);
 window.addEventListener("restro:updated", refreshAll);
 
+initMaps();
 refreshAll();
