@@ -17,6 +17,7 @@ let selectedCategory = "All";
 let searchQuery = "";
 let currentTheme =
   localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+let toastTimer = null;
 
 // null = checkout uses full cart; object = single-item "Order Now" mode
 let directOrderItem = null;
@@ -48,6 +49,8 @@ const els = {
   themeToggleBtn: document.getElementById("themeToggleBtn"),
   themeIcon: document.getElementById("themeIcon"),
   themeLabel: document.getElementById("themeLabel"),
+  cartToast: document.getElementById("cartToast"),
+  cartToastText: document.getElementById("cartToastText"),
   heroSection: document.getElementById("heroSection"),
   storySection: document.getElementById("story-section"),
   storyBadgeCard: document.getElementById("storyBadgeCard"),
@@ -107,6 +110,45 @@ const els = {
   menuSearchInput: document.getElementById("menuSearchInput"),
 };
 
+function showCartToast(message) {
+  if (!els.cartToast || !els.cartToastText) return;
+  els.cartToastText.textContent = message;
+  els.cartToast.classList.remove("opacity-0", "-translate-y-2");
+  els.cartToast.classList.add("opacity-100", "translate-y-0");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    els.cartToast.classList.remove("opacity-100", "translate-y-0");
+    els.cartToast.classList.add("opacity-0", "-translate-y-2");
+  }, 1800);
+}
+
+function pulseCartBadge() {
+  if (!els.cartCountBadge) return;
+  els.cartCountBadge.classList.add("scale-125");
+  setTimeout(() => els.cartCountBadge.classList.remove("scale-125"), 200);
+}
+
+function initScrollReveals() {
+  const targets = document.querySelectorAll(".qasr-reveal");
+  if (!targets.length) return;
+  if (typeof IntersectionObserver === "undefined") {
+    targets.forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12 },
+  );
+  targets.forEach((el) => observer.observe(el));
+}
+
 function isLight() {
   return currentTheme === "light";
 }
@@ -138,16 +180,16 @@ function applyTheme() {
     : "hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.2em] font-medium text-stone-300";
 
   els.themeToggleBtn.className = light
-    ? "px-2.5 sm:px-3 py-2 rounded-full border border-stone-300 bg-white hover:bg-stone-100 text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-    : "px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 hover:bg-stone-800 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer";
+    ? "px-2.5 sm:px-3 py-2 rounded-full border border-stone-300 bg-white hover:bg-stone-100 text-stone-800 text-xs font-semibold flex items-center gap-1.5 qasr-pressable cursor-pointer"
+    : "px-2.5 sm:px-3 py-2 rounded-full border border-amber-500/30 bg-stone-900 hover:bg-stone-800 text-amber-300 text-xs font-semibold flex items-center gap-1.5 qasr-pressable cursor-pointer";
 
   els.navLoginBtn.className = light
-    ? "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-300 hover:border-amber-700 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-800 bg-white transition"
-    : "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 transition";
+    ? "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-300 hover:border-amber-700 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-800 bg-white qasr-pressable"
+    : "px-2.5 sm:px-3.5 py-2 rounded-full border border-stone-700 hover:border-amber-400/70 text-[11px] sm:text-xs uppercase tracking-wider font-semibold text-stone-200 qasr-pressable";
 
   els.navSignupBtn.className = light
-    ? "hidden sm:inline-block px-3.5 py-2 rounded-full bg-amber-700 hover:bg-amber-600 text-xs uppercase tracking-wider font-semibold text-white transition"
-    : "hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 transition";
+    ? "hidden sm:inline-block px-3.5 py-2 rounded-full bg-amber-700 hover:bg-amber-600 text-xs uppercase tracking-wider font-semibold text-white qasr-pressable"
+    : "hidden sm:inline-block px-3.5 py-2 rounded-full bg-stone-900 hover:bg-stone-800 border border-amber-500/30 text-xs uppercase tracking-wider font-semibold text-amber-400 qasr-pressable";
 
   els.mobileSubBar.className = light
     ? "sm:hidden border-t border-stone-200 bg-[#F4EFE6] px-3 py-2 flex items-center justify-between text-[11px] text-stone-700"
@@ -174,8 +216,8 @@ function applyTheme() {
     : "text-stone-300 text-sm sm:text-base leading-relaxed";
 
   const cardSurface = light
-    ? "p-4 sm:p-5 rounded-2xl bg-[#FAF7F2] border border-stone-200"
-    : "p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90";
+    ? "p-4 sm:p-5 rounded-2xl bg-[#FAF7F2] border border-stone-200 hover:-translate-y-0.5 transition duration-300"
+    : "p-4 sm:p-5 rounded-2xl bg-[#1A1714] border border-stone-800/90 hover:-translate-y-0.5 transition duration-300";
   els.featureCard1.className = cardSurface;
   els.featureCard2.className = cardSurface;
 
@@ -188,8 +230,8 @@ function applyTheme() {
     : "text-xs sm:text-sm text-stone-400";
 
   els.menuSearchInput.className = light
-    ? "w-full px-4 py-2.5 rounded-full bg-white border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700"
-    : "w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400";
+    ? "w-full px-4 py-2.5 rounded-full bg-white border border-stone-300 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 transition"
+    : "w-full px-4 py-2.5 rounded-full bg-[#181614] border border-stone-700 text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-400 transition";
 
   els.locationSection.className = light
     ? "bg-white border-t border-stone-200 py-16 sm:py-20 transition-colors duration-300"
@@ -416,7 +458,7 @@ function renderCategories() {
       : "bg-[#181614] text-stone-300 border border-stone-800 hover:border-amber-500/50 hover:text-amber-300";
     return `
       <button type="button" data-category="${cat}"
-        class="px-4 sm:px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
+        class="px-4 sm:px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold whitespace-nowrap shrink-0 qasr-pressable cursor-pointer ${
           active ? "bg-amber-500 text-stone-950 shadow-md" : inactiveClass
         }">
         ${cat}
@@ -442,7 +484,7 @@ function renderMenu() {
 
   if (filtered.length === 0) {
     els.menuGrid.innerHTML = `
-      <div class="col-span-full ${light ? "bg-white border-stone-200 text-stone-500" : "bg-[#181614] border-stone-800 text-stone-400"} border rounded-2xl p-12 text-center">
+      <div class="col-span-full ${light ? "bg-white border-stone-200 text-stone-500" : "bg-[#181614] border-stone-800 text-stone-400"} border rounded-2xl p-12 text-center qasr-card-animate">
         No dishes found matching your selection.
       </div>
     `;
@@ -450,14 +492,15 @@ function renderMenu() {
   }
 
   els.menuGrid.innerHTML = filtered
-    .map((item) => {
+    .map((item, idx) => {
       const available = Boolean(item.inStock);
       const off = Number(item.offPercent || 0);
       const finalPrice = getEffectivePrice(item);
+      const staggerDelay = Math.min(idx * 60, 360);
 
       const cardClasses = light
-        ? "group bg-white border border-stone-200 hover:border-amber-600/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 flex flex-col"
-        : "group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl transition duration-300 flex flex-col";
+        ? "qasr-card-animate group bg-white border border-stone-200 hover:border-amber-600/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col"
+        : "qasr-card-animate group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col";
 
       const titleClasses = light
         ? "font-serif text-lg sm:text-xl font-bold text-stone-900 leading-snug group-hover:text-amber-800 transition"
@@ -473,16 +516,16 @@ function renderMenu() {
 
       const addBtnClasses = available
         ? light
-          ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 transition cursor-pointer"
-          : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 transition cursor-pointer"
+          ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 qasr-pressable cursor-pointer"
+          : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 qasr-pressable cursor-pointer"
         : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
 
       const orderNowClasses = available
-        ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-amber-500 hover:bg-amber-400 text-stone-950 transition cursor-pointer"
+        ? "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-amber-500 hover:bg-amber-400 text-stone-950 qasr-pressable cursor-pointer"
         : "flex-1 py-2.5 px-3 rounded-full text-[11px] uppercase tracking-wider font-bold bg-stone-800/40 text-stone-600 cursor-not-allowed";
 
       return `
-        <article class="${cardClasses}">
+        <article class="${cardClasses}" style="animation-delay: ${staggerDelay}ms;">
           <div class="relative h-48 sm:h-56 bg-stone-900 overflow-hidden">
             <img src="${item.image}" alt="${item.name}" loading="lazy"
               class="w-full h-full object-cover group-hover:scale-105 transition duration-500 ${available ? "" : "grayscale opacity-50"}" />
@@ -592,10 +635,10 @@ function renderDrawer() {
 
         <div class="flex items-center gap-2 shrink-0">
           <button type="button" data-qty-delta="-1" data-item-id="${item.id}"
-            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">−</button>
+            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm qasr-pressable cursor-pointer">−</button>
           <span class="w-5 text-center text-sm font-semibold">${item.qty}</span>
           <button type="button" data-qty-delta="1" data-item-id="${item.id}"
-            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm cursor-pointer">+</button>
+            class="w-8 h-8 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-sm qasr-pressable cursor-pointer">+</button>
         </div>
       </div>
     `,
@@ -707,10 +750,15 @@ els.menuSearchInput.addEventListener("input", (e) => {
 els.menuGrid.addEventListener("click", (e) => {
   const addBtn = e.target.closest("[data-add-to-cart]");
   if (addBtn) {
+    const product = Store.getMenu().find(
+      (m) => m.id === addBtn.dataset.addToCart,
+    );
     const added = Store.addToCart(addBtn.dataset.addToCart);
     if (added) {
       directOrderItem = null;
       renderDrawer();
+      pulseCartBadge();
+      showCartToast(`Added "${product ? product.name : "dish"}" to cart`);
     }
     return;
   }
@@ -808,4 +856,5 @@ window.addEventListener("storage", refreshAll);
 window.addEventListener("restro:updated", refreshAll);
 
 initMaps();
+initScrollReveals();
 refreshAll();
