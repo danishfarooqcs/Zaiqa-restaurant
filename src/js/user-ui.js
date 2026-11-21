@@ -262,10 +262,10 @@ function renderCategories() {
     const active = selectedCategory === cat;
     return `
       <button type="button" data-category="${cat}"
-        class="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
+        class="px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition cursor-pointer ${
           active
-            ? "bg-amber-600 text-white shadow-sm"
-            : "bg-white text-stone-700 border border-stone-200 hover:border-amber-500"
+            ? "bg-amber-500 text-stone-950 shadow-md shadow-amber-950/40"
+            : "bg-[#181614] text-stone-300 border border-stone-800 hover:border-amber-500/50 hover:text-amber-300"
         }">
         ${cat}
       </button>
@@ -289,8 +289,8 @@ function renderMenu() {
 
   if (filtered.length === 0) {
     els.menuGrid.innerHTML = `
-      <div class="col-span-full bg-white border border-stone-200 rounded-2xl p-10 text-center text-stone-500">
-        No dishes found matching your filter.
+      <div class="col-span-full bg-[#181614] border border-stone-800 rounded-2xl p-12 text-center text-stone-400">
+        No dishes found matching your selection.
       </div>
     `;
     return;
@@ -303,48 +303,49 @@ function renderMenu() {
       const finalPrice = getEffectivePrice(item);
 
       return `
-        <article class="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
-          <div class="relative h-48 bg-stone-200">
+        <article class="group bg-[#171513] border border-stone-800/90 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl transition duration-300 flex flex-col">
+          <div class="relative h-56 bg-stone-900 overflow-hidden">
             <img src="${item.image}" alt="${item.name}" loading="lazy"
-              class="w-full h-full object-cover ${available ? "" : "grayscale opacity-60"}" />
-            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-900/80 text-amber-300">
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500 ${available ? "" : "grayscale opacity-50"}" />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#171513] via-transparent to-black/30"></div>
+            <span class="absolute top-3.5 left-3.5 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider font-semibold bg-black/75 backdrop-blur-xs text-amber-300 border border-amber-500/20">
               ${item.category}
             </span>
             ${
               off > 0 && available
-                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">${off}% OFF</span>`
+                ? `<span class="absolute top-3.5 right-3.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white shadow">${off}% OFF</span>`
                 : ""
             }
             ${
               !available
-                ? `<span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600 text-white">Out of Stock</span>`
-                : `<span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 text-stone-700">~${item.prepTime}m prep</span>`
+                ? `<span class="absolute top-3.5 right-3.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white">Sold Out</span>`
+                : `<span class="absolute bottom-3 right-3.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-black/75 text-stone-200">~${item.prepTime}m prep</span>`
             }
           </div>
 
-          <div class="p-5 flex-1 flex flex-col justify-between gap-4">
+          <div class="p-6 flex-1 flex flex-col justify-between gap-5">
             <div>
-              <div class="flex items-start justify-between gap-2">
-                <h3 class="text-lg font-bold text-stone-900 leading-snug">${item.name}</h3>
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="font-serif text-xl font-bold text-white leading-snug group-hover:text-amber-300 transition">${item.name}</h3>
                 <div class="text-right whitespace-nowrap">
-                  <span class="text-base font-bold text-amber-700">${formatPrice(finalPrice)}</span>
+                  <span class="text-base font-bold text-amber-400">${formatPrice(finalPrice)}</span>
                   ${
                     off > 0
-                      ? `<span class="block text-xs line-through text-stone-400">${formatPrice(item.price)}</span>`
+                      ? `<span class="block text-xs line-through text-stone-500">${formatPrice(item.price)}</span>`
                       : ""
                   }
                 </div>
               </div>
-              <p class="text-xs sm:text-sm text-stone-600 mt-1.5 line-clamp-2">${item.description}</p>
+              <p class="text-xs sm:text-sm text-stone-400 mt-2 line-clamp-2 leading-relaxed">${item.description}</p>
             </div>
 
             <button type="button" data-add-to-cart="${item.id}" ${available ? "" : "disabled"}
-              class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition ${
+              class="w-full py-3 px-4 rounded-full text-xs uppercase tracking-[0.18em] font-bold transition ${
                 available
-                  ? "bg-stone-900 hover:bg-amber-600 text-white cursor-pointer"
-                  : "bg-stone-200 text-stone-400 cursor-not-allowed"
+                  ? "bg-stone-900 hover:bg-amber-500 text-amber-300 hover:text-stone-950 border border-amber-500/30 cursor-pointer"
+                  : "bg-stone-900 text-stone-600 border border-stone-800 cursor-not-allowed"
               }">
-              ${available ? "+ Add to Cart" : "Currently Unavailable"}
+              ${available ? "+ Add to Order" : "Currently Unavailable"}
             </button>
           </div>
         </article>
@@ -352,7 +353,6 @@ function renderMenu() {
     })
     .join("");
 }
-
 function renderCart() {
   const { cart, subtotal, deliveryFee, total, estDeliveryMins, itemCount } =
     Store.getCartSummary();
